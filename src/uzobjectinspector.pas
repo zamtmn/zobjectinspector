@@ -61,7 +61,7 @@ type
   end;
 
   TOnGetOtherValues=procedure(var vsa:TZctnrVectorStrings;const valkey:string;const DisplayedData:TDisplayedData);
-  TOnUpdateObjectInInsp=procedure(const EDContext:TEditorContext;const currobjgdbtype:PUserTypeDescriptor;const pcurcontext:pointer;const pcurrobj:pointer{;const GDBobj:boolean});
+  TOnUpdateObjectInInsp=procedure(const EDContext:TEditorContext;const currobjgdbtype:PUserTypeDescriptor;const pcurcontext:pointer;const pcurrobj:pointer;const OnFieldModifyProc:TOnFieldModifyProc);
   TOnNotify=procedure(const pcurcontext:pointer);
 
   TObjInspCustom=TScrollBox;
@@ -1123,20 +1123,18 @@ Modified : /trunk/cad_source/languade/varmandef.pas
   end;
 end;
 procedure TGDBobjinsp.UpdateObjectInInsp;
+var
+  OnFieldModifyProc:TOnFieldModifyProc;
+  PParentType:PUserTypeDescriptor;
 begin
-  if {GDBobj}true then
-                begin
-                     if EDContext.ppropcurrentedit<>nil then
-                     begin
-                     {propertysupport if EDContext.ppropcurrentedit^.mode=PDM_Property then
-                                                             begin
-                                                               PObjectDescriptor(CurrObjGDBType)^.SimpleRunMetodWithArg(EDContext.ppropcurrentedit^.w,CurrPObj,EDContext.ppropcurrentedit^.valueAddres);
-                                                             end;}
-                    end;
-                end;
+  PParentType:=CurrData.PType;
+  OnFieldModifyProc:=nil;
+  while (@OnFieldModifyProc=nil)and(PParentType<>nil)do begin
+    OnFieldModifyProc:=OIManager.OnFieldModifyProc(PParentType);
+    PParentType:=PParentType^.GetParentTypedef;
+  end;
   if assigned(onUpdateObjectInInsp)then
-     onUpdateObjectInInsp(EDContext,CurrData.PType,CurrData.Ctx,CurrData.PObj{,GDBobj});
-
+     onUpdateObjectInInsp(EDContext,CurrData.PType,CurrData.Ctx,CurrData.PObj,OnFieldModifyProc);
   self.updateinsp;
 end;
 procedure TGDBobjinsp.ScrollBy(DeltaX, DeltaY: Integer);
@@ -1869,7 +1867,7 @@ begin
   RegisterComponents('zcadcontrols',[TGDBobjinsp]);
 end;
 initialization
-  OIManager.Init;
+  //OIManager.Init;
 finalization
-  OIManager.Done;
+  //OIManager.Done;
 end.

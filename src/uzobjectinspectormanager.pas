@@ -25,13 +25,20 @@ interface
 uses
   SysUtils,
   Graphics,
+  gzctnrSTL,
+  uzsbVarmanDef,
   uzbUsable;
 type
   TUsableInteger=GUsable<integer>;
   PTUsableInteger=^TUsableInteger;
 
+  TOnFieldModifyProc=procedure(PObj,PField:Pointer;PTypeDescriptor:PUserTypeDescriptor);
+
+  TOnFieldModifyProcs=GKey2DataMap<PUserTypeDescriptor,{TOnFieldModifyProc}pointer>;
+
   TObjInspsManager=object
     private
+      fOnFieldModifyProcs:TOnFieldModifyProcs;
       fPropertyRowName:string;
       fValueRowName:string;
       fDifferentName:string;
@@ -50,6 +57,9 @@ type
       fButtonSizeReducing:integer;
       fShowEmptySections:boolean;
     public
+      procedure AddOnFieldModifyProc(putd:PUserTypeDescriptor;ofmp:TOnFieldModifyProc);
+      function OnFieldModifyProc(putd:PUserTypeDescriptor):TOnFieldModifyProc;
+
       function getOpenNodeIdent:integer;
       procedure setOpenNodeIdent(const AValue:integer);
 
@@ -121,6 +131,23 @@ var
   OIManager:TObjInspsManager;
 
 implementation
+procedure TObjInspsManager.AddOnFieldModifyProc(putd:PUserTypeDescriptor;ofmp:TOnFieldModifyProc);
+begin
+  if fOnFieldModifyProcs=nil then
+    fOnFieldModifyProcs:=TOnFieldModifyProcs.Create;
+  fOnFieldModifyProcs.RegisterKey(putd,@ofmp);
+  ofmp:=nil;
+  ofmp:=fOnFieldModifyProcs.MyGetValue(putd);
+  ofmp:=nil;
+end;
+function TObjInspsManager.OnFieldModifyProc(putd:PUserTypeDescriptor):TOnFieldModifyProc;
+begin
+  if fOnFieldModifyProcs=nil then
+    result:=nil
+  else
+    result:=fOnFieldModifyProcs.MyGetValue(putd);
+end;
+
 function TObjInspsManager.getOpenNodeIdent:integer;
 begin
   result:=fOpenNodeIdent;
@@ -275,9 +302,11 @@ begin
   fOpenNodeIdent:=0;
   fButtonSizeReducing:=4;
   fShowEmptySections:=false;
+  fOnFieldModifyProcs:=nil;
 end;
 destructor TObjInspsManager.Done;
 begin
+  fOnFieldModifyProcs.Free;
 end;
 
 initialization

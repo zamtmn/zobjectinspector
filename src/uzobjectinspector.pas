@@ -30,15 +30,16 @@ uses
   Types,Graphics,Themes,LCLIntf,LCLType,
   ExtCtrls,Controls,Menus,Forms,
   StdCtrls,ColorBox,
-
   uzbUnits,uzbUnitsUtils,
   uzsbVarmanDef,
   uzsbTypeDescriptors,
   gzctnrVectorTypes,uzctnrvectorstrings,
   uzObjectInspectorManager;
+
 const
   spliterhalfwidth=4;
   subtab=1;
+
 type
   TCBReadOnlyMode=(CBReadOnly,CBEditable,CBDoNotTouch);
   PContent=Pointer;
@@ -46,41 +47,42 @@ type
   //TIsCurrObjInUndoContext=function({_GDBobj:boolean;}_pcurrobj:pointer):boolean;
 
   TEditorContext=record
-                       ppropcurrentedit:PPropertyDeskriptor;
-                       //UndoStack:PTZctnrVectorUndoCommands;
-                       //UndoCommand:TTypedChangeCommand;
-                 end;
+    ppropcurrentedit:PPropertyDeskriptor;
+    //UndoStack:PTZctnrVectorUndoCommands;
+    //UndoCommand:TTypedChangeCommand;
+  end;
 
   TDisplayedData=record
-   PObj:PContent;
-   PType:PUserTypeDescriptor;
-   Ctx:PContext;
-   UnitsFormat:TzeUnitsFormat;
-   constructor CreateRec(const APOdj:PContent;const APType:PUserTypeDescriptor;const ACtx:PContext;const AUnitsFormat:TzeUnitsFormat);
-   procedure Clear;
+    PObj:PContent;
+    PType:PUserTypeDescriptor;
+    Ctx:PContext;
+    UnitsFormat:TzeUnitsFormat;
+    constructor CreateRec(const APOdj:PContent;const APType:PUserTypeDescriptor;const ACtx:PContext;const AUnitsFormat:TzeUnitsFormat);
+    procedure Clear;
   end;
 
   TOnGetOtherValues=procedure(var vsa:TZctnrVectorStrings;const valkey:string;const DisplayedData:TDisplayedData);
-  TOnUpdateObjectInInsp=procedure(const EDContext:TEditorContext;const currobjgdbtype:PUserTypeDescriptor;const pcurcontext:pointer;const pcurrobj:pointer;const OnFieldModifyProc:TOnFieldModifyProc);
+  TOnUpdateObjectInInsp=procedure(const EDContext:TEditorContext;const currobjgdbtype:PUserTypeDescriptor;
+    const pcurcontext:pointer;const pcurrobj:pointer;const OnFieldModifyProc:TOnFieldModifyProc);
   TOnNotify=procedure(const pcurcontext:pointer);
 
   TObjInspCustom=TScrollBox;
 
   TNameColumnWidthCorrector=record
-   LastClientWidth,LastNameColumnWidth:integer;
+    LastClientWidth,LastNameColumnWidth:integer;
   end;
 
   TGDBobjinsp=class(TObjInspCustom)
-    protected
-      //DefaultUndoStack:PTZctnrVectorUndoCommands;
-      PDA:TPropertyDeskriptorArray;
-      contentheigth:integer;
-      OLDPP:PPropertyDeskriptor;
-      OnMousePP:PPropertyDeskriptor;
-      MResplit:boolean;
+  protected
+    //DefaultUndoStack:PTZctnrVectorUndoCommands;
+    PDA:TPropertyDeskriptorArray;
+    contentheigth:integer;
+    OLDPP:PPropertyDeskriptor;
+    OnMousePP:PPropertyDeskriptor;
+    MResplit:boolean;
 
-      function getRowHeight:integer;
-    public
+    function getRowHeight:integer;
+  public
 
     //GDBobj:boolean;
     DefaultData:TDisplayedData;
@@ -121,57 +123,59 @@ type
     property OnContextPopup;
 
 
-    procedure draw; virtual;
-    procedure mypaint(sender:tobject);
-    procedure drawprop(DefaultDetails: TThemedElementDetails;PPA:PTPropertyDeskriptorArray;arect:trect);
-    procedure InternalDrawprop(DefaultDetails: TThemedElementDetails;PPA:PTPropertyDeskriptorArray; var y,sub:integer;miny:integer;arect:trect;var LastPropAddFreespace:Boolean);
-    procedure calctreeh(PPA:PTPropertyDeskriptorArray; var y:integer);
-    function gettreeh:integer; virtual;
-    procedure _onresize(sender:tobject);virtual;
+    procedure draw;virtual;
+    procedure mypaint(Sender:TObject);
+    procedure drawprop(DefaultDetails:TThemedElementDetails;PPA:PTPropertyDeskriptorArray;arect:trect);
+    procedure InternalDrawprop(DefaultDetails:TThemedElementDetails;PPA:PTPropertyDeskriptorArray;var y,sub:integer;miny:integer;arect:trect;
+      var LastPropAddFreespace:boolean);
+    procedure calctreeh(PPA:PTPropertyDeskriptorArray;var y:integer);
+    function gettreeh:integer;virtual;
+    procedure _onresize(Sender:TObject);virtual;
     procedure updateeditorBounds;virtual;
-    procedure buildproplist({const UndoStack:PTZctnrVectorUndoCommands;}const f:TzeUnitsFormat;exttype:PUserTypeDescriptor; bmode:integer; var addr:pointer);
+    procedure buildproplist({const UndoStack:PTZctnrVectorUndoCommands;}const f:TzeUnitsFormat;exttype:PUserTypeDescriptor;bmode:integer;var addr:pointer);
     procedure SetCurrentObjDefault;
     procedure ReturnToDefault;
     procedure rebuild;
-    procedure Notify(Sender: TObject;Command:TMyNotifyCommand); virtual;
+    procedure Notify(Sender:TObject;Command:TMyNotifyCommand);virtual;
     procedure createpda;
-    destructor Destroy; Override;
+    destructor Destroy;override;
     procedure createscrollbars;virtual;
-    procedure ScrollBy(DeltaX, DeltaY: Integer); override;
-    procedure AfterConstruction; override;
+    procedure ScrollBy(DeltaX,DeltaY:integer);override;
+    procedure AfterConstruction;override;
     //procedure CalcRowHeight;
 
     procedure FreeEditor;
     procedure StoreAndFreeEditor;
     procedure ClearEDContext;
-    procedure AsyncFreeEditorAndSelectNext(Data: PtrInt);
-    procedure AsyncFreeEditor(Data: PtrInt);
-    function IsMouseOnSpliter(pp:PPropertyDeskriptor; X,Y:Integer):boolean;
+    procedure AsyncFreeEditorAndSelectNext(Data:PtrInt);
+    procedure AsyncFreeEditor(Data:PtrInt);
+    function IsMouseOnSpliter(pp:PPropertyDeskriptor;X,Y:integer):boolean;
 
     procedure createeditor(pp:PPropertyDeskriptor);
     //function IsCurrObjInUndoContext({_GDBobj:boolean;}_pcurrobj:pointer):boolean;
-    constructor Create(AOwner: TComponent); override;
+    constructor Create(AOwner:TComponent);override;
 
     function IsHeadersEnabled:boolean;
     function HeadersHeight:integer;
 
     {LCL}
-    procedure MouseMove(Shift: TShiftState; X, Y: Integer);override;
+    procedure MouseMove(Shift:TShiftState;X,Y:integer);override;
     procedure MouseLeave;override;
 
-    procedure MouseDown(Button: TMouseButton; Shift: TShiftState;X, Y: Integer);override;
-    procedure MouseUp(Button: TMouseButton; Shift:TShiftState; X,Y:Integer);override;
+    procedure MouseDown(Button:TMouseButton;Shift:TShiftState;X,Y:integer);override;
+    procedure MouseUp(Button:TMouseButton;Shift:TShiftState;X,Y:integer);override;
     procedure UpdateObjectInInsp;
     procedure setptr(AData:TDisplayedData);
     procedure updateinsp;
-    procedure myKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure myKeyDown(Sender:TObject;var Key:word;Shift:TShiftState);
   end;
 
 procedure Register;
-procedure SetComboSize(cb:TComboBox;ItemH:Integer;ReadOnlyMode:TCBReadOnlyMode);
+procedure SetComboSize(cb:TComboBox;ItemH:integer;ReadOnlyMode:TCBReadOnlyMode);
 
 implementation
-procedure SetComboSize(cb:TComboBox;ItemH:Integer;ReadOnlyMode:TCBReadOnlyMode);
+
+procedure SetComboSize(cb:TComboBox;ItemH:integer;ReadOnlyMode:TCBReadOnlyMode);
 begin
   cb.AutoSize:=False;
   {$IFDEF LCLWIN32}
@@ -183,13 +187,16 @@ begin
      cb.ItemHeight:=ItemH;
   {$ENDIF}
 end;
-constructor TDisplayedData.CreateRec(const APOdj:PContent;const APType:PUserTypeDescriptor;const ACtx:PContext;const AUnitsFormat:TzeUnitsFormat);
+
+constructor TDisplayedData.CreateRec(const APOdj:PContent;const APType:PUserTypeDescriptor;
+  const ACtx:PContext;const AUnitsFormat:TzeUnitsFormat);
 begin
   PObj:=APOdj;
   PType:=APType;
   Ctx:=ACtx;
   UnitsFormat:=AUnitsFormat;
 end;
+
 procedure TDisplayedData.Clear;
 begin
   CreateRec(nil,nil,nil,CreateDefaultUnitsFormat);
@@ -197,85 +204,83 @@ end;
 
 function TGDBobjinsp.getRowHeight:integer;
 begin
-  result:=OIManager.RowHeightOverride.ValueOrDefault(OIManager.DefaultRowHeight);
+  Result:=OIManager.RowHeightOverride.ValueOrDefault(OIManager.DefaultRowHeight);
 end;
 
-procedure TGDBobjinsp.myKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TGDBobjinsp.myKeyDown(Sender:TObject;var Key:word;Shift:TShiftState);
 begin
-  if Peditor<>nil then
-    begin
-      if key=VK_ESCAPE then
-        begin
-          freeeditor;
-          key:=0;
-          exit;
-        end;
+  if Peditor<>nil then begin
+    if key=VK_ESCAPE then begin
+      freeeditor;
+      key:=0;
+      exit;
     end;
+  end;
   if StoredData.PObj<>nil then
-    if key=VK_ESCAPE then
-      begin
-        setptr(StoredData);
-        StoredData.Clear();
-        //PStoredObj:=nil;
-        //StoredObjGDBType:=nil;
-        //pStoredContext:=nil;
-        //StoredUndoStack:=nil;
-        key:=0;
-        exit;
-      end;
+    if key=VK_ESCAPE then begin
+      setptr(StoredData);
+      StoredData.Clear();
+      //PStoredObj:=nil;
+      //StoredObjGDBType:=nil;
+      //pStoredContext:=nil;
+      //StoredUndoStack:=nil;
+      key:=0;
+      exit;
+    end;
 end;
 
 function PlusMinusDetail(Collapsed,hot:boolean):TThemedTreeview;
 const
-  PlusMinusDetailArray:array[{isCollapsed}Boolean,{isHot}Boolean] of TThemedTreeview =
-  ((ttGlyphClosed,ttHotGlyphClosed),
-   (ttGlyphOpened,ttHotGlyphOpened));
+  PlusMinusDetailArray:array[{isCollapsed}boolean,{isHot}boolean] of TThemedTreeview=
+    ((ttGlyphClosed,ttHotGlyphClosed),(ttGlyphOpened,ttHotGlyphOpened));
 begin
- {$IFDEF LCLWIN32}
+  {$IFDEF LCLWIN32}
   if WindowsVersion<wvVista then
     hot:=false;
- {$endif}
-  result:=PlusMinusDetailArray[Collapsed,hot];
+  {$endif}
+  Result:=PlusMinusDetailArray[Collapsed,hot];
 end;
 
 function IsWgiteBackground:boolean;
 begin
-     result:=OIManager.INTFObjInspWhiteBackground;
+  Result:=OIManager.INTFObjInspWhiteBackground;
 end;
 
 function TGDBobjinsp.IsHeadersEnabled:boolean;
 begin
-     result:=OIManager.INTFObjInspShowHeaders;
+  Result:=OIManager.INTFObjInspShowHeaders;
 end;
+
 function TGDBobjinsp.HeadersHeight:integer;
 begin
-     if IsHeadersEnabled then
-                             result:=OIManager.RowHeightOverride.ValueOrDefault(OIManager.DefaultRowHeight)
-                         else
-                             result:=0;
+  if IsHeadersEnabled then
+    Result:=OIManager.RowHeightOverride.ValueOrDefault(OIManager.DefaultRowHeight)
+  else
+    Result:=0;
 end;
+
 function NeedShowSeparator:boolean;
 begin
-     if OIManager.INTFObjInspOldStyleDraw then
-        result:=false
-     else
-        result:=OIManager.INTFObjInspShowSeparator;
+  if OIManager.INTFObjInspOldStyleDraw then
+    Result:=False
+  else
+    Result:=OIManager.INTFObjInspShowSeparator;
 end;
+
 function isOldStyleDraw:boolean;
 begin
-       result:=OIManager.INTFObjInspOldStyleDraw;
+  Result:=OIManager.INTFObjInspOldStyleDraw;
 end;
+
 function NeedDrawFasteditor(OnMouseProp:boolean):boolean;
 begin
-     if OIManager.INTFObjInspShowFastEditors then
-     begin
-         if OIManager.INTFObjInspShowOnlyHotFastEditors then
-         result:=OnMouseProp
-         else
-             result:=true;
-     end
-     else
-         result:=false;
+  if OIManager.INTFObjInspShowFastEditors then begin
+    if OIManager.INTFObjInspShowOnlyHotFastEditors then
+      Result:=OnMouseProp
+    else
+      Result:=True;
+  end else
+    Result:=False;
 end;
 (*procedure TGDBobjinsp.CalcRowHeight;
 begin
@@ -288,26 +293,26 @@ end;*)
 
 procedure TGDBobjinsp.AfterConstruction;
 begin
-     inherited;
-     //rowh:=21;
-     //spaceh:=5;
-     //CalcRowHeight;
+  inherited;
+  //rowh:=21;
+  //spaceh:=5;
+  //CalcRowHeight;
 
-     onresize:=_onresize;
-     //onhide:=FormHide;
-     onpaint:=mypaint;
-     self.DoubleBuffered:=true;
-     self.BorderStyle:=bsnone;
-     self.BorderWidth:=0;
+  onresize:=_onresize;
+  //onhide:=FormHide;
+  onpaint:=mypaint;
+  self.DoubleBuffered:=True;
+  self.BorderStyle:=bsnone;
+  self.BorderWidth:=0;
 
   CurrData.CreateRec(nil,nil,nil,CreateDefaultUnitsFormat);
-     //CurrPObj:=nil;
-     peditor:=nil;
-     //CurrObjGDBType:=nil;
-     createpda;
+  //CurrPObj:=nil;
+  peditor:=nil;
+  //CurrObjGDBType:=nil;
+  createpda;
   EDContext.ppropcurrentedit:=nil;
 
-  MResplit:=false;
+  MResplit:=False;
   NameColumnWidth:=clientwidth div 2;
   NameColumnWidthCorrector.LastNameColumnWidth:=NameColumnWidth;
   NameColumnWidthCorrector.LastClientWidth:=clientwidth;
@@ -325,10 +330,9 @@ end;
 
 procedure TGDBobjinsp.ReturnToDefault;
 begin
-  if assigned(peditor)then
-                          begin
-                          self.StoreAndFreeEditor;
-                          end;
+  if assigned(peditor) then begin
+    self.StoreAndFreeEditor;
+  end;
   setptr(DefaultData);
 end;
 
@@ -339,8 +343,7 @@ end;
 
 destructor TGDBobjinsp.Destroy;
 begin
-  if peditor<>nil then
-  begin
+  if peditor<>nil then begin
     peditor.Free;
   end;
   inherited;
@@ -351,7 +354,7 @@ end;
 procedure TGDBobjinsp.buildproplist;
 begin
   if exttype<>nil then
-  PTUserTypeDescriptor(exttype)^.CreateProperties(f,PDM_Field,@PDA,'root',field_no_attrib,[],bmode,addr,'','');
+    PTUserTypeDescriptor(exttype)^.CreateProperties(f,PDM_Field,@PDA,'root',field_no_attrib,[],bmode,addr,'','');
 end;
 
 procedure TGDBobjinsp.calctreeh;
@@ -362,19 +365,19 @@ var
   rowh:integer;
 begin
   rowh:=getRowHeight;
-  if ppa^.Count=0 then exit;
+  if ppa^.Count=0 then
+    exit;
   ppd:=ppa^.beginiterate(ir);
   if ppd<>nil then
     repeat
-      last:=false;
-      if ppd^.IsVisible(OIManager.INTFObjInspShowEmptySections) then
-      begin
+      last:=False;
+      if ppd^.IsVisible(OIManager.INTFObjInspShowEmptySections) then begin
         y:=y+rowh;
         if ppd^.SubNode<>nil then begin
           if not ppd^.Collapsed^ then begin
             calctreeh(pointer(ppd.SubNode),y);
             y:=y+OIManager.INTFObjInspSpaceHeight;
-            last:=true;
+            last:=True;
           end;
         end;
       end;
@@ -383,92 +386,93 @@ begin
   if last then
     y:=y-OIManager.INTFObjInspSpaceHeight;
 end;
+
 procedure drawfasteditor(ppd:PPropertyDeskriptor;canvas:tcanvas;var FastEditorRT:TFastEditorRunTimeData;var r:trect);
 const
   fastEditorOffset={$IFDEF LCLQT}2{$ELSE}2{$ENDIF};
 var
-   fer:trect;
-   FESize:TSize;
-   temp:integer;
+  fer:trect;
+  FESize:TSize;
+  temp:integer;
 begin
-     if assigned(FastEditorRT.Procs.OnGetPrefferedFastEditorSize) then
-     begin
-           FESize:=FastEditorRT.Procs.OnGetPrefferedFastEditorSize(ppd^.valueAddres,r);
-           temp:=r.Bottom-r.Top-2;
-           if temp<2 then temp:=2;
-           if FESize.cy>temp then
-           begin
-                FESize.cy:=temp;
-           end;
-           if FESize.cX>0 then
-           if (r.Right-r.Left-1)>FESize.cX then
-           begin
-                fer:=r;
-                fer.Left:=fer.Right-FESize.cX-fastEditorOffset;
-                fer.Right:=fer.Right-fastEditorOffset;
-                if FESize.cy>0 then
-                begin
-                fer.Top:=fer.Top-3;
-                temp:=(fer.Bottom+fer.Top)div 2;
-                fer.Top:=temp-FESize.cy div 2;
-                fer.Bottom:=fer.Top+FESize.cy;
-                end
-                else
-                begin
-                fer.Top:=fer.Top-3;
-                end;
-                FastEditorRT.Procs.OnDrawFastEditor(canvas,fer,ppd^.valueAddres,FastEditorRT.FastEditorState,r);
-                FastEditorRT.FastEditorRect:=fer;
-                r.Right:=fer.Left;
-                FastEditorRT.FastEditorDrawed:=true;
-           end;
-     end;
+  if assigned(FastEditorRT.Procs.OnGetPrefferedFastEditorSize) then begin
+    FESize:=FastEditorRT.Procs.OnGetPrefferedFastEditorSize(ppd^.valueAddres,r);
+    temp:=r.Bottom-r.Top-2;
+    if temp<2 then
+      temp:=2;
+    if FESize.cy>temp then begin
+      FESize.cy:=temp;
+    end;
+    if FESize.cX>0 then
+      if (r.Right-r.Left-1)>FESize.cX then begin
+        fer:=r;
+        fer.Left:=fer.Right-FESize.cX-fastEditorOffset;
+        fer.Right:=fer.Right-fastEditorOffset;
+        if FESize.cy>0 then begin
+          fer.Top:=fer.Top-3;
+          temp:=(fer.Bottom+fer.Top)div 2;
+          fer.Top:=temp-FESize.cy div 2;
+          fer.Bottom:=fer.Top+FESize.cy;
+        end else begin
+          fer.Top:=fer.Top-3;
+        end;
+        FastEditorRT.Procs.OnDrawFastEditor(canvas,fer,ppd^.valueAddres,FastEditorRT.FastEditorState,r);
+        FastEditorRT.FastEditorRect:=fer;
+        r.Right:=fer.Left;
+        FastEditorRT.FastEditorDrawed:=True;
+      end;
+  end;
 end;
 
 procedure drawfasteditors(ppd:PPropertyDeskriptor;canvas:tcanvas;var r:trect);
 var
-   //fer:trect;
-   //FESize:TSize;
-   //temp:integer;
-   i:integer;
+  //fer:trect;
+  //FESize:TSize;
+  //temp:integer;
+  i:integer;
 begin
-     if assigned(ppd.FastEditors)then
-     for i:=0 to ppd.FastEditors.Size-1 do
+  if assigned(ppd.FastEditors) then
+    for i:=0 to ppd.FastEditors.Size-1 do
       drawfasteditor(ppd,canvas,ppd.FastEditors.Mutable[i]^,r);
 end;
-function GetSizeTreeIcon(Minus,hot: Boolean):TSize;
+
+function GetSizeTreeIcon(Minus,hot:boolean):TSize;
 var
-  Details: TThemedElementDetails;
+  Details:TThemedElementDetails;
 begin
-  Details := ThemeServices.GetElementDetails(PlusMinusDetail(Minus,hot));
-  result := ThemeServices.GetDetailSizeForPPI(Details,Screen.PixelsPerInch);
+  Details:=ThemeServices.GetElementDetails(PlusMinusDetail(Minus,hot));
+  Result:=ThemeServices.GetDetailSizeForPPI(Details,Screen.PixelsPerInch);
 end;
-procedure drawheader(Canvas:tcanvas;ppd:PPropertyDeskriptor;r:trect;name:string;onm:boolean;TextDetails: TThemedElementDetails);
-procedure DrawTreeIcon(X, Y: Integer; Minus, hot: Boolean);
+
+procedure drawheader(Canvas:tcanvas;ppd:PPropertyDeskriptor;r:trect;Name:string;onm:boolean;
+  TextDetails:TThemedElementDetails);
+
+  procedure DrawTreeIcon(X,Y:integer;Minus,hot:boolean);
+  var
+    Details:TThemedElementDetails;
+    Size:TSize;
+  begin
+    Details:=ThemeServices.GetElementDetails(PlusMinusDetail(Minus,hot));
+    Size:=ThemeServices.GetDetailSizeForPPI(Details,Screen.PixelsPerInch);
+    ThemeServices.DrawElement(Canvas.Handle,Details,Rect(X,Y,X+Size.cx,Y+Size.cy), {nil}@r);
+  end;
+
 var
-  Details: TThemedElementDetails;
-  Size: TSize;
-begin
-  Details := ThemeServices.GetElementDetails(PlusMinusDetail(Minus,hot));
-  Size := ThemeServices.GetDetailSizeForPPI(Details,Screen.PixelsPerInch);
-  ThemeServices.DrawElement(Canvas.Handle, Details, Rect(X, Y, X + Size.cx, Y + Size.cy), {nil}@r);
-end;
-var
-   Size: TSize;
-   temp:integer;
+  Size:TSize;
+  temp:integer;
 begin
   if not ppd^.Collapsed^ then
-                             ppd^.Collapsed^:=ppd^.Collapsed^;
+    ppd^.Collapsed^:=ppd^.Collapsed^;
   size:=GetSizeTreeIcon(not ppd^.Collapsed^,onm);
   temp:=(r.bottom-r.top-size.cy)div 3;
   if (r.Right-r.Left)>size.cx then
-  DrawTreeIcon({Canvas,}r.left,r.top+temp,not ppd^.Collapsed^,onm);
-  inc(r.left,size.cx+1);
+    DrawTreeIcon({Canvas,}r.left,r.top+temp,not ppd^.Collapsed^,onm);
+  Inc(r.left,size.cx+1);
   clearRTd(ppd.FastEditors);
   //ppd.FastEditorDrawed:=false;
   if NeedDrawFasteditor(onm) then
-  if assigned(ppd.FastEditors) then
-  drawfasteditors(ppd,canvas,r);
+    if assigned(ppd.FastEditors) then
+      drawfasteditors(ppd,canvas,r);
   {canvas.Font.Italic:=true;
   if onm then
              begin
@@ -476,7 +480,7 @@ begin
              canvas.Font.Underline:=true;
              end;}
   if (r.Right-r.Left)>1 then
-  ThemeServices.DrawText(Canvas,TextDetails,name,r,DT_END_ELLIPSIS or DT_NOPREFIX,0);
+    ThemeServices.DrawText(Canvas,TextDetails,Name,r,DT_END_ELLIPSIS or DT_NOPREFIX,0);
   {//canvas.TextRect(r,r.Left,r.Top,(name));
   canvas.Font.Italic:=false;
   if onm then
@@ -486,32 +490,34 @@ begin
              end;
   dec(r.left,size.cx+1);}
 end;
-function DrawRect(DefaultDetails:TThemedElementDetails;ACanvas:TCanvas;ARect:TRect;AActive:Boolean;AOnMouse:Boolean;AReadOnly:Boolean;AWithChildren:Boolean):TThemedElementDetails;
+
+function DrawRect(DefaultDetails:TThemedElementDetails;ACanvas:TCanvas;ARect:TRect;AActive:boolean;AOnMouse:boolean;
+  AReadOnly:boolean;AWithChildren:boolean):TThemedElementDetails;
 var
-   tc:tcolor;
+  tc:tcolor;
 begin
   //AWithChildren:=false;
-  result:=defaultdetails;
+  Result:=defaultdetails;
   if (not ThemeServices.ThemesAvailable)or isOldStyleDraw then begin
     if AOnMouse and ThemeServices.ThemesAvailable then
-      result:=ThemeServices.GetElementDetails(ttItemHot);
+      Result:=ThemeServices.GetElementDetails(ttItemHot);
     if AActive and ThemeServices.ThemesAvailable then
-      result:=ThemeServices.GetElementDetails(ttItemSelected);
+      Result:=ThemeServices.GetElementDetails(ttItemSelected);
 
     tc:=ACanvas.Brush.Color;
     if OIManager.INTFObjInspBorderColor<>clDefault then
       ACanvas.Pen.Color:=OIManager.INTFObjInspBorderColor;
     if AActive then begin
-      ACanvas.Brush.Color := clHighlight{clBtnHiLight};
+      ACanvas.Brush.Color:=clHighlight{clBtnHiLight};
       ACanvas.Pen.Style:=psDot;
       inflaterect(ARect,0,-1);
       ACanvas.Rectangle(ARect);
       ACanvas.Pen.Style:=psSolid;
     end else begin
       if IsWgiteBackground then
-        ACanvas.Brush.Color := clWindow
+        ACanvas.Brush.Color:=clWindow
       else
-        ACanvas.Brush.Color := clBtnFace;
+        ACanvas.Brush.Color:=clBtnFace;
 
       if AWithChildren then
         if OIManager.INTFObjInspLevel0HeaderColor<>clDefault then
@@ -521,69 +527,56 @@ begin
         ACanvas.Rectangle(ARect);
     end;
     ACanvas.Brush.Color:=tc;
-  end
-  else
-  begin
-       if AActive then
-                     begin
-                     result := ThemeServices.GetElementDetails(ttItemSelected);
-                     ThemeServices.DrawElement(ACanvas.Handle, result, ARect, nil);
-                     end
-                 else
-                     if AReadOnly then
-                     begin
-                     if isOldStyleDraw then
-                     begin
-                       result := {ThemeServices.GetElementDetails(ttItemNormal)}DefaultDetails;
-                       ThemeServices.DrawElement(ACanvas.Handle, result, ARect, nil);
-                     end;
-                     result := ThemeServices.GetElementDetails(ttItemDisabled);
-                     end
-                     else
-                     if AOnMouse then
-                     begin
-                     result := ThemeServices.GetElementDetails(ttItemHot);
-                     {$IFDEF LCLWIN32}
-                     if ((WindowsVersion >= wvVista)and ThemeServices.ThemesEnabled) then
-                                                                                         ThemeServices.DrawElement(ACanvas.Handle, result, ARect, nil)
-                                                                                     else
-                                                                                         if isOldStyleDraw then
-                                                                                         ThemeServices.DrawElement(ACanvas.Handle, ThemeServices.GetElementDetails(ttItemNormal), ARect, nil)
-                     {$ENDIF}
-                     {$IFNDEF LCLWIN32}
-                     ThemeServices.DrawElement(ACanvas.Handle, result, ARect, nil);
-                     {$ENDIF}
-                     end
-                     else
-                     begin
+  end else begin
+    if AActive then begin
+      Result:=ThemeServices.GetElementDetails(ttItemSelected);
+      ThemeServices.DrawElement(ACanvas.Handle,Result,ARect,nil);
+    end else if AReadOnly then begin
+      if isOldStyleDraw then begin
+        Result:= {ThemeServices.GetElementDetails(ttItemNormal)}DefaultDetails;
+        ThemeServices.DrawElement(ACanvas.Handle,Result,ARect,nil);
+      end;
+      Result:=ThemeServices.GetElementDetails(ttItemDisabled);
+    end else if AOnMouse then begin
+      Result:=ThemeServices.GetElementDetails(ttItemHot);
+     {$IFDEF LCLWIN32}
+      if ((WindowsVersion >= wvVista)and ThemeServices.ThemesEnabled) then
+        ThemeServices.DrawElement(ACanvas.Handle, result, ARect, nil)
+      else
+        if isOldStyleDraw then
+          ThemeServices.DrawElement(ACanvas.Handle, ThemeServices.GetElementDetails(ttItemNormal), ARect, nil)
+     {$ENDIF}
+     {$IFNDEF LCLWIN32}
+      ThemeServices.DrawElement(ACanvas.Handle,Result,ARect,nil);
+     {$ENDIF}
+    end else begin
                      {if assigned(sysvar.INTF.INTF_ShowLinesInObjInsp) then
                      if sysvar.INTF.INTF_ShowLinesInObjInsp^ then}
-                     if isOldStyleDraw then
-                     begin
-                     result := {ThemeServices.GetElementDetails(ttItemNormal)}DefaultDetails;
-                     ThemeServices.DrawElement(ACanvas.Handle, result, ARect, nil);
-                     end;
-                     end;
-                     {$IFDEF LCLWIN32}
-                     if (WindowsVersion < wvVista)or(not ThemeServices.ThemesEnabled) then
-                     {$ENDIF}
-                     if isOldStyleDraw then
-                     begin
-                        ACanvas.Line(ARect.Left,ARect.Top,ARect.Right,ARect.Top);
-                        ACanvas.Line(ARect.Right,ARect.Top,ARect.Right,ARect.Bottom);
-                        ACanvas.Line(ARect.Right,ARect.Bottom,ARect.Left,ARect.Bottom);
-                        ACanvas.Line(ARect.Left,ARect.Bottom,ARect.Left,ARect.Top);
-                     end;
+      if isOldStyleDraw then begin
+        Result:= {ThemeServices.GetElementDetails(ttItemNormal)}DefaultDetails;
+        ThemeServices.DrawElement(ACanvas.Handle,Result,ARect,nil);
+      end;
+    end;
+   {$IFDEF LCLWIN32}
+     if (WindowsVersion < wvVista)or(not ThemeServices.ThemesEnabled) then
+   {$ENDIF}
+    if isOldStyleDraw then begin
+      ACanvas.Line(ARect.Left,ARect.Top,ARect.Right,ARect.Top);
+      ACanvas.Line(ARect.Right,ARect.Top,ARect.Right,ARect.Bottom);
+      ACanvas.Line(ARect.Right,ARect.Bottom,ARect.Left,ARect.Bottom);
+      ACanvas.Line(ARect.Left,ARect.Bottom,ARect.Left,ARect.Top);
+    end;
   end;
 end;
-procedure drawstring(cnvs:tcanvas;r:trect;{L,T:integer;}s:string;TextDetails: TThemedElementDetails);
+
+procedure drawstring(cnvs:tcanvas;r:trect;{L,T:integer;}s:string;TextDetails:TThemedElementDetails);
 {const
   maxsize=200;
 var
    s2:string;}
 begin
-     if (r.Right-r.Left)>1 then
-     ThemeServices.DrawText(cnvs,TextDetails,s,r,DT_END_ELLIPSIS or DT_SINGLELINE or DT_NOPREFIX,0)
+  if (r.Right-r.Left)>1 then
+    ThemeServices.DrawText(cnvs,TextDetails,s,r,DT_END_ELLIPSIS or DT_SINGLELINE or DT_NOPREFIX,0);
      {if length(s)<maxsize then
                           //cnvs.TextRect(r,L,T,s)
                           ThemeServices.DrawText(cnvs,TextDetails,s,r,DT_END_ELLIPSIS,0)
@@ -594,180 +587,163 @@ begin
                                ThemeServices.DrawText(cnvs,TextDetails,s2,r,DT_END_ELLIPSIS,0);
                           end;}
 end;
-procedure drawvalue(DefaultDetails:TThemedElementDetails;ppd:PPropertyDeskriptor;canvas:tcanvas;fulldraw:boolean;TextDetails:TThemedElementDetails;onm:boolean;AWithChildren:Boolean);
+
+procedure drawvalue(DefaultDetails:TThemedElementDetails;ppd:PPropertyDeskriptor;canvas:tcanvas;
+  fulldraw:boolean;TextDetails:TThemedElementDetails;onm:boolean;AWithChildren:boolean);
 var
-   r:trect;
-   tempcolor:TColor;
-   value:string;
+  r:trect;
+  tempcolor:TColor;
+  Value:string;
 begin
   if fldaHidden in ppd^.Attr then
-    canvas.Font.Italic:=true;
+    canvas.Font.Italic:=True;
 
   if fldaApproximately in ppd^.Attr then
-    value:='≈'+ppd^.value
+    Value:='≈'+ppd^.Value
   else
-    value:=ppd^.value;
+    Value:=ppd^.Value;
 
   r:=ppd.rect;
   if fulldraw then
-  DrawRect(DefaultDetails,canvas,r,false,false,false,AWithChildren);
+    DrawRect(DefaultDetails,canvas,r,False,False,False,AWithChildren);
   r.Top:=r.Top+3;
   r.Left:=r.Left+3;
   r.Right:=r.Right-1;
-  if fldaReadOnly in ppd^.Attr then
-  begin
+  if fldaReadOnly in ppd^.Attr then begin
     tempcolor:=canvas.Font.Color;
     //canvas.Font.Color:=clGrayText;
-    if fldaColored1 in ppd^.Attr then
-    begin
-          canvas.Font.StrikeThrough:=true;
+    if fldaColored1 in ppd^.Attr then begin
+      canvas.Font.StrikeThrough:=True;
     end;
     if fulldraw then
-    if (assigned(ppd.Decorators.OnDrawProperty) and(ppd^.valueAddres<>nil)and(not(fldaDifferent in ppd^.Attr))) then
-                                       ppd.Decorators.OnDrawProperty(canvas,r,ppd^.valueAddres)
-                                   else
-                                       drawstring(canvas,r,{r.Left,r.Top,}(value),DefaultDetails);
+      if (assigned(ppd.Decorators.OnDrawProperty) and(ppd^.valueAddres<>nil)and(not(fldaDifferent in ppd^.Attr))) then
+        ppd.Decorators.OnDrawProperty(canvas,r,ppd^.valueAddres)
+      else
+        drawstring(canvas,r,{r.Left,r.Top,}(Value),DefaultDetails);
     canvas.Font.Color:=tempcolor;
-  end
-  else
-    begin
-         clearRTd(ppd.FastEditors);
-         //ppd.FastEditorDrawed:=false;
-         if NeedDrawFasteditor(onm) then
-         drawfasteditors(ppd,canvas,r);
-     if fldaColored1 in ppd^.Attr then
-     begin
-           canvas.Font.StrikeThrough:=true;
-     end;
-    if fulldraw then
-    if (assigned(ppd.Decorators.OnDrawProperty) and(ppd^.valueAddres<>nil)and(not(fldaDifferent in ppd^.Attr))) then
-                                                   ppd.Decorators.OnDrawProperty(canvas,r,ppd^.valueAddres)
-                                               else
-                                                   drawstring(canvas,r,{r.Left,r.Top,}(value),DefaultDetails);
+  end else begin
+    clearRTd(ppd.FastEditors);
+    //ppd.FastEditorDrawed:=false;
+    if NeedDrawFasteditor(onm) then
+      drawfasteditors(ppd,canvas,r);
+    if fldaColored1 in ppd^.Attr then begin
+      canvas.Font.StrikeThrough:=True;
     end;
+    if fulldraw then
+      if (assigned(ppd.Decorators.OnDrawProperty) and(ppd^.valueAddres<>nil)and(not(fldaDifferent in ppd^.Attr))) then
+        ppd.Decorators.OnDrawProperty(canvas,r,ppd^.valueAddres)
+      else
+        drawstring(canvas,r,{r.Left,r.Top,}(Value),DefaultDetails);
+  end;
 
-if fldaHidden in ppd^.Attr then
-begin
-      canvas.Font.Italic:=false;
-end;
-if fldaColored1 in ppd^.Attr then
-begin
-      canvas.Font.StrikeThrough:=false;
-end;
-
+  if fldaHidden in ppd^.Attr then begin
+    canvas.Font.Italic:=False;
+  end;
+  if fldaColored1 in ppd^.Attr then begin
+    canvas.Font.StrikeThrough:=False;
+  end;
 
 end;
-procedure TGDBobjinsp.drawprop(DefaultDetails: TThemedElementDetails;PPA:PTPropertyDeskriptorArray;arect:trect);
+
+procedure TGDBobjinsp.drawprop(DefaultDetails:TThemedElementDetails;PPA:PTPropertyDeskriptorArray;arect:trect);
 var
-   lpafs:boolean;
-   y,sub:integer;
-   miny:integer;
+  lpafs:boolean;
+  y,sub:integer;
+  miny:integer;
 begin
-     lpafs:=false;
-     y:=HeadersHeight+BorderWidth;
-     sub:=0;
-     miny:=arect.Top+HeadersHeight+1;
-     InternalDrawprop(DefaultDetails,PPA,y,sub,miny,arect,lpafs);
+  lpafs:=False;
+  y:=HeadersHeight+BorderWidth;
+  sub:=0;
+  miny:=arect.Top+HeadersHeight+1;
+  InternalDrawprop(DefaultDetails,PPA,y,sub,miny,arect,lpafs);
 end;
 
-procedure TGDBobjinsp.InternalDrawprop(DefaultDetails:TThemedElementDetails;PPA:PTPropertyDeskriptorArray; var y,sub:integer;miny:integer;arect:TRect;var LastPropAddFreespace:Boolean);
+procedure TGDBobjinsp.InternalDrawprop(DefaultDetails:TThemedElementDetails;PPA:PTPropertyDeskriptorArray;
+  var y,sub:integer;miny:integer;arect:TRect;var LastPropAddFreespace:boolean);
 var
-  s:String;
+  s:string;
   ppd:PPropertyDeskriptor;
   r:trect;
   tempcolor:TColor;
   ir:itrec;
-  visible:boolean;
+  Visible:boolean;
   OnMouseProp:boolean;
-  TextDetails: TThemedElementDetails;
-  TextStyle: TTextStyle;
+  TextDetails:TThemedElementDetails;
+  TextStyle:TTextStyle;
   rowh:integer;
 begin
   rowh:=OIManager.RowHeightOverride.ValueOrDefault(OIManager.DefaultRowHeight);
   ppd:=ppa^.beginiterate(ir);
   if ppd<>nil then
     repeat
-      LastPropAddFreespace:=false;
-      if ppd^.IsVisible(OIManager.INTFObjInspShowEmptySections) then
-      begin
+      LastPropAddFreespace:=False;
+      if ppd^.IsVisible(OIManager.INTFObjInspShowEmptySections) then begin
         OnMouseProp:=(ppd=onmousepp);
-        if assigned(ppd^.Collapsed)then
-          r.Left:=arect.Left+{2+}(subtab+GetSizeTreeIcon(not ppd^.Collapsed^,false).cx)*sub
+        if assigned(ppd^.Collapsed) then
+          r.Left:=arect.Left+{2+}(subtab+GetSizeTreeIcon(not ppd^.Collapsed^,False).cx)*sub
         else
-          r.Left:=arect.Left+{2+}(subtab+GetSizeTreeIcon(true,false).cx)*sub;
+          r.Left:=arect.Left+{2+}(subtab+GetSizeTreeIcon(True,False).cx)*sub;
         r.Top:=y;
         if NeedShowSeparator then
-                                 r.Right:=NameColumnWidth-spliterhalfwidth
-                             else
-                                 r.Right:=NameColumnWidth;
-        r.Bottom:=y+rowh+1;
-         if miny<=r.Bottom then
-                                                 visible:=true
-                                             else
-                                                 visible:=false;
-        begin
-        if ppd^.SubNode<>nil then
-                                  begin
-                                     if (ppd^.SubNode^.Count>0)or OIManager.INTFObjInspShowEmptySections then
-                                     begin
-                                     if visible then
-                                     begin
-                                    s:=ppd^.Name;
-                                    if not NeedShowSeparator then
-                                                             r.Right:=arect.Right-1;
-                                    TextDetails:=DrawRect(DefaultDetails,canvas,r,false,OnMouseProp,(fldaReadOnly in ppd^.Attr),{true}sub=0);
-                                    //r.Left:={r.Left+3}arect.Left+5+subtab*sub;
-                                    r.Left:=arect.Left+{2+}(subtab+GetSizeTreeIcon(not ppd^.Collapsed^,false).cx)*sub;
-                                    r.Top:=r.Top+3;
-                                    if fldaReadOnly in ppd^.Attr then
-                                                                          begin
-                                                                            tempcolor:=canvas.Font.Color;
-                                                                            canvas.Font.Color:=clGrayText;
-
-                                                                            drawheader(canvas,ppd,r,s,OnMouseProp,TextDetails);
-
-                                                                            canvas.Font.Color:=tempcolor;
-                                                                          end
-                                                                      else
-                                                                          begin
-                                                                            drawheader(canvas,ppd,r,s,OnMouseProp,TextDetails);
-                                                                          end;
-                                    ppd.rect:=r;
-                                    end;
-                                    inc(sub);
-                                    y:=y+rowh;
-                                    if not ppd^.Collapsed^ then
-                                      InternalDrawprop(DefaultDetails,pointer(ppd.SubNode),y,sub,miny,arect,LastPropAddFreespace);
-                                    dec(sub);
-                                     end;
-                                  end
+          r.Right:=NameColumnWidth-spliterhalfwidth
         else
+          r.Right:=NameColumnWidth;
+        r.Bottom:=y+rowh+1;
+        if miny<=r.Bottom then
+          Visible:=True
+        else
+          Visible:=False;
         begin
-          if visible then
-          begin
-          TextDetails:=DrawRect(DefaultDetails,canvas,r,(ppd=EDContext.ppropcurrentedit),OnMouseProp,fldaReadOnly in ppd^.Attr,{false}sub=0);
+          if ppd^.SubNode<>nil then begin
+            if (ppd^.SubNode^.Count>0)or OIManager.INTFObjInspShowEmptySections then begin
+              if Visible then begin
+                s:=ppd^.Name;
+                if not NeedShowSeparator then
+                  r.Right:=arect.Right-1;
+                TextDetails:=DrawRect(DefaultDetails,canvas,r,False,OnMouseProp,(fldaReadOnly in ppd^.Attr),{true}sub=0);
+                //r.Left:={r.Left+3}arect.Left+5+subtab*sub;
+                r.Left:=arect.Left+{2+}(subtab+GetSizeTreeIcon(not ppd^.Collapsed^,False).cx)*sub;
+                r.Top:=r.Top+3;
+                if fldaReadOnly in ppd^.Attr then begin
+                  tempcolor:=canvas.Font.Color;
+                  canvas.Font.Color:=clGrayText;
 
-          if fldaHidden in ppd^.Attr then
-          begin
-                canvas.Font.Italic:=true;
-          end;
-          r.Left:=r.Left+2;
-          r.Top:=r.Top+3;
-          //if (fldaReadOnly in ppd^.Attr)or(fldaHidden in ppd^.Attr) then
-          if [fldaReadOnly,fldaHidden]*ppd^.Attr<>[]then
-          begin
-            tempcolor:=canvas.Font.Color;
-            TextStyle:=canvas.TextStyle;
-            TextStyle.EndEllipsis:=true;
-            TextStyle.WordBreak:=false;
-            canvas.Font.Color:=clGrayText;
-            //DrawText(canvas.Handle, @ppd^.Name[1],length(ppd^.Name),R,DT_END_ELLIPSIS);
-            if (r.Right-r.Left)>1 then
-            canvas.TextRect(r,r.Left,r.Top,ppd^.Name,TextStyle);
-            canvas.Font.Color:=tempcolor;
-          end
-          else
-              begin
+                  drawheader(canvas,ppd,r,s,OnMouseProp,TextDetails);
+
+                  canvas.Font.Color:=tempcolor;
+                end else begin
+                  drawheader(canvas,ppd,r,s,OnMouseProp,TextDetails);
+                end;
+                ppd.rect:=r;
+              end;
+              Inc(sub);
+              y:=y+rowh;
+              if not ppd^.Collapsed^ then
+                InternalDrawprop(DefaultDetails,pointer(ppd.SubNode),y,sub,miny,arect,LastPropAddFreespace);
+              Dec(sub);
+            end;
+          end else begin
+            if Visible then begin
+              TextDetails:=DrawRect(DefaultDetails,canvas,r,(ppd=EDContext.ppropcurrentedit),
+                OnMouseProp,fldaReadOnly in ppd^.Attr,{false}sub=0);
+
+              if fldaHidden in ppd^.Attr then begin
+                canvas.Font.Italic:=True;
+              end;
+              r.Left:=r.Left+2;
+              r.Top:=r.Top+3;
+              //if (fldaReadOnly in ppd^.Attr)or(fldaHidden in ppd^.Attr) then
+              if [fldaReadOnly,fldaHidden]*ppd^.Attr<>[] then begin
+                tempcolor:=canvas.Font.Color;
+                TextStyle:=canvas.TextStyle;
+                TextStyle.EndEllipsis:=True;
+                TextStyle.WordBreak:=False;
+                canvas.Font.Color:=clGrayText;
+                //DrawText(canvas.Handle, @ppd^.Name[1],length(ppd^.Name),R,DT_END_ELLIPSIS);
+                if (r.Right-r.Left)>1 then
+                  canvas.TextRect(r,r.Left,r.Top,ppd^.Name,TextStyle);
+                canvas.Font.Color:=tempcolor;
+              end else begin
                    {if OnMouseProp then
                                       begin
                                       //canvas.Font.bold:=true;
@@ -778,9 +754,9 @@ begin
                                            tempcolor:=canvas.Font.Color;
                                            canvas.Font.Color:=clHighlightText;
                                       end;}
-                   //canvas.TextRect(r,r.Left,r.Top,(ppd^.Name));
-                   if (r.Right-r.Left)>1 then
-                   ThemeServices.DrawText(Canvas,TextDetails,ppd^.Name,r,DT_END_ELLIPSIS or DT_NOPREFIX,0);
+                //canvas.TextRect(r,r.Left,r.Top,(ppd^.Name));
+                if (r.Right-r.Left)>1 then
+                  ThemeServices.DrawText(Canvas,TextDetails,ppd^.Name,r,DT_END_ELLIPSIS or DT_NOPREFIX,0);
                    {if OnMouseProp then
                                       begin
                                       //canvas.Font.bold:=false;
@@ -791,41 +767,40 @@ begin
                                            canvas.Font.Color:=tempcolor;
                                       end;}
               end;
-          r.Top:=r.Top-3;
-          if NeedShowSeparator then
-                                   r.Left:=r.Right-1+spliterhalfwidth
-                               else
-                                   r.Left:=r.Right-1;
-          r.Right:=arect.Right-1;
+              r.Top:=r.Top-3;
+              if NeedShowSeparator then
+                r.Left:=r.Right-1+spliterhalfwidth
+              else
+                r.Left:=r.Right-1;
+              r.Right:=arect.Right-1;
 
-          ppd.rect:=r;
-          drawvalue(DefaultDetails,ppd,canvas,true,TextDetails,onmouseprop,sub=0);
+              ppd.rect:=r;
+              drawvalue(DefaultDetails,ppd,canvas,True,TextDetails,onmouseprop,sub=0);
 
           {if (ppd^.Attr and fldaHidden)<>0 then
           begin
                 canvas.Font.Italic:=false;
           end;}
-          end;
+            end;
 
-          y:=y++rowh;
+            y:=y++rowh;
+          end;
         end;
-      end;
       end;
       ppd:=ppa^.iterate(ir);
       if self.VertScrollBar.Position+self.ClientHeight<=(y) then
-                                                                       system.break;
+        system.break;
     until ppd=nil;
-    if not LastPropAddFreespace then
-                                    begin
-                                      y:=y+OIManager.INTFObjInspSpaceHeight;
-                                      LastPropAddFreespace:=true;
-                                    end;
+  if not LastPropAddFreespace then begin
+    y:=y+OIManager.INTFObjInspSpaceHeight;
+    LastPropAddFreespace:=True;
+  end;
 end;
 
 function TGDBobjinsp.gettreeh;
 begin
-  result:=0;
-  calctreeh(@pda,result);
+  Result:=0;
+  calctreeh(@pda,Result);
 end;
 {procedure TGDBobjinsp.WMVScroll(var Message : TLMVScroll);
 var
@@ -867,93 +842,101 @@ begin
 end;}
 procedure TGDBobjinsp.mypaint;
 begin
-     //inherited;
-     draw;
+  //inherited;
+  draw;
 end;
+
 procedure TGDBobjinsp.draw;
 var
   arect,hrect:trect;
   tc:tcolor;
   {ts:TTextStyle;}
-  vDefaultDetails: TThemedElementDetails;
+  vDefaultDetails:TThemedElementDetails;
 begin
-//CalcRowHeight;
-ARect := GetClientRect;
-InflateRect(ARect, -BorderWidth, -BorderWidth);
-ARect.Top:=ARect.Top+VertScrollBar.ScrollPos;
-ARect.Bottom:=ARect.Bottom+VertScrollBar.ScrollPos;
-{$IFDEF LCLWIN32}
+  //CalcRowHeight;
+  ARect:=GetClientRect;
+  InflateRect(ARect,-BorderWidth,-BorderWidth);
+  ARect.Top:=ARect.Top+VertScrollBar.ScrollPos;
+  ARect.Bottom:=ARect.Bottom+VertScrollBar.ScrollPos;
+  {$IFDEF LCLWIN32}
 if WindowsVersion < wvVista then
                                 vDefaultDetails := ThemeServices.GetElementDetails(tbPushButtonNormal)
                             else
                                 vDefaultDetails := ThemeServices.GetElementDetails(tmPopupCheckBackgroundDisabled){trChevronVertHot}{ttbThumbDisabled}{tlListViewRoot};
-{$endif}
-{$IFDEF LCLGTK2}vDefaultDetails := ThemeServices.GetElementDetails(ttbody){$endif}
-{$IFDEF LCLQT}vDefaultDetails := ThemeServices.GetElementDetails({ttpane}thHeaderDontCare){$endif};
-{$IFDEF LCLQT5}vDefaultDetails := ThemeServices.GetElementDetails(ttPane){$endif};
-if IsWgiteBackground then
-                         Canvas.FillRect(ARect)
-                     else
-                         begin
-                              if isOldStyleDraw then
-                              begin
-                                  tc:=Canvas.Brush.Color;
-                                  Canvas.Brush.Color:=clBtnFace;
-                                  Canvas.FillRect(ARect);
-                                  Canvas.Brush.Color:=tc;
-                              end
-                              else
-                                  ThemeServices.DrawElement(Canvas.Handle, vDefaultDetails, ARect, nil);
-                         end;
+  {$endif}
+  {$IFDEF LCLGTK2}vDefaultDetails := ThemeServices.GetElementDetails(ttbody){$endif}
+  {$IFDEF LCLQT}vDefaultDetails := ThemeServices.GetElementDetails({ttpane}thHeaderDontCare){$endif};
+  {$IFDEF LCLQT5}vDefaultDetails := ThemeServices.GetElementDetails(ttPane){$endif};
+  if IsWgiteBackground then
+    Canvas.FillRect(ARect)
+  else begin
+    if isOldStyleDraw then begin
+      tc:=Canvas.Brush.Color;
+      Canvas.Brush.Color:=clBtnFace;
+      Canvas.FillRect(ARect);
+      Canvas.Brush.Color:=tc;
+    end else
+      ThemeServices.DrawElement(Canvas.Handle,vDefaultDetails,ARect,nil);
+  end;
 
 {ts:=canvas.TextStyle;
 ts.Alignment:=taCenter;
 ts.Layout:=tlCenter;}
 
-hrect:=ARect;
-{$IFDEF LCLWIN32}
-if WindowsVersion>=wvVista then
-{$endif}
-InflateRect(hrect, -1, -1);
+  hrect:=ARect;
+ {$IFDEF LCLWIN32}
+  if WindowsVersion>=wvVista then
+ {$endif}
+  InflateRect(hrect,-1,-1);
 
 
-drawprop(vDefaultDetails,@pda,{arect}hrect);
+  drawprop(vDefaultDetails,@pda,{arect}hrect);
 
-hrect.Bottom:=hrect.Top+HeadersHeight-1{+1};
-{$IFDEF WINDOWS}hrect.Top:=hrect.Top;{$ENDIF}
-{$IFNDEF WINDOWS}hrect.Top:=hrect.Top+2;{$ENDIF}
+  hrect.Bottom:=hrect.Top+HeadersHeight-1{+1};
+ {$IFDEF WINDOWS}
+  hrect.Top:=hrect.Top;
+ {$ENDIF}
+ {$IFNDEF WINDOWS}
+  hrect.Top:=hrect.Top+2;
+ {$ENDIF}
 
   if IsHeadersEnabled then begin
     hrect.Left:=hrect.Left+2;
     hrect.Right:=NameColumnWidth{$IFDEF WINDOWS}+1{$ENDIF};
-    vDefaultDetails := ThemeServices.GetElementDetails(thHeaderItemNormal);
-    ThemeServices.DrawElement(Canvas.Handle, vDefaultDetails, hrect, nil);
+    vDefaultDetails:=ThemeServices.GetElementDetails(thHeaderItemNormal);
+    ThemeServices.DrawElement(Canvas.Handle,vDefaultDetails,hrect,nil);
     ThemeServices.DrawText(Canvas,vDefaultDetails,OIManager.PropertyRowName,hrect,DT_END_ELLIPSIS or DT_CENTER or DT_VCENTER or DT_NOPREFIX,0);
 
-    vDefaultDetails := ThemeServices.GetElementDetails(thHeaderItemRightNormal);
+    vDefaultDetails:=ThemeServices.GetElementDetails(thHeaderItemRightNormal);
     hrect.Left:=hrect.right;
-    {$IFDEF WINDOWS}hrect.right:=ARect.Right-1;{$ENDIF}
-    {$IFNDEF WINDOWS}hrect.right:=ARect.Right-2;{$ENDIF}
-    ThemeServices.DrawElement(Canvas.Handle, vDefaultDetails, hrect, nil);
+   {$IFDEF WINDOWS}
+    hrect.right:=ARect.Right-1;
+   {$ENDIF}
+   {$IFNDEF WINDOWS}
+    hrect.right:=ARect.Right-2;
+   {$ENDIF}
+    ThemeServices.DrawElement(Canvas.Handle,vDefaultDetails,hrect,nil);
     ThemeServices.DrawText(Canvas,vDefaultDetails,OIManager.ValueRowName,hrect,DT_END_ELLIPSIS or DT_CENTER or DT_VCENTER or DT_NOPREFIX,0);
   end;
 
   if NeedShowSeparator then begin
     hrect.Left:=NameColumnWidth-2;
     hrect.right:=NameColumnWidth+{$IFNDEF WINDOWS}2{$ENDIF}{$IFDEF WINDOWS}1{$ENDIF};
-    hrect.Top:= hrect.Bottom;
+    hrect.Top:=hrect.Bottom;
     hrect.Bottom:=contentheigth+HeadersHeight;
     if hrect.Bottom>ARect.Bottom then
       hrect.Bottom:=ARect.Bottom{height};
     if ThemeServices.ThemesEnabled then begin
-      {$IFNDEF LCLWIN32}vDefaultDetails := ThemeServices.GetElementDetails(ttbSeparatorNormal);{$ENDIF}
-      {$IFDEF LCLWIN32}
+     {$IFNDEF LCLWIN32}
+      vDefaultDetails:=ThemeServices.GetElementDetails(ttbSeparatorNormal);
+     {$ENDIF}
+     {$IFDEF LCLWIN32}
       if WindowsVersion < wvVista then
         vDefaultDetails := ThemeServices.GetElementDetails(ttbSeparatorNormal)
       else
         vDefaultDetails := ThemeServices.GetElementDetails(tsPane);
-      {$ENDIF}
-      ThemeServices.DrawElement(Canvas.Handle, vDefaultDetails, hrect, nil);
+     {$ENDIF}
+      ThemeServices.DrawElement(Canvas.Handle,vDefaultDetails,hrect,nil);
     end else begin
       hrect.Left:=(hrect.Left+hrect.Right)div 2;
       tc:=Canvas.Pen.Color;
@@ -963,127 +946,132 @@ hrect.Bottom:=hrect.Top+HeadersHeight-1{+1};
     end;
   end;
 end;
+
 function findnext(psubtree:PTPropertyDeskriptorArray;current:PPropertyDeskriptor):PPropertyDeskriptor;
 var
   curr:PPropertyDeskriptor;
-      ir:itrec;
+  ir:itrec;
 begin
-  result:=nil;
+  Result:=nil;
   curr:=psubtree^.beginiterate(ir);
   if curr<>nil then
     repeat
-      if curr^.IsVisible(OIManager.INTFObjInspShowEmptySections) then
-      begin
-        if curr=current then
-        begin
-          result:=psubtree^.iterate(ir);
-          if result<>nil then
-           if result^.SubNode<>nil then
-              result:=nil;
+      if curr^.IsVisible(OIManager.INTFObjInspShowEmptySections) then begin
+        if curr=current then begin
+          Result:=psubtree^.iterate(ir);
+          if Result<>nil then
+            if Result^.SubNode<>nil then
+              Result:=nil;
           exit;
         end;
-        if (curr^.SubNode<>nil)and(not curr^.Collapsed^) then result:=findnext(pointer(curr^.SubNode),current);
-        if result<>nil then exit;
+        if (curr^.SubNode<>nil)and(not curr^.Collapsed^) then
+          Result:=findnext(pointer(curr^.SubNode),current);
+        if Result<>nil then
+          exit;
       end;
       curr:=psubtree^.iterate(ir);
     until curr=nil;
 end;
-function InternalMousetoprop(rowh:integer;psubtree:PTPropertyDeskriptorArray; mx,my:integer; var y:integer;var LastPropAddFreeSpace:boolean):PPropertyDeskriptor;
+
+function InternalMousetoprop(rowh:integer;psubtree:PTPropertyDeskriptorArray;mx,my:integer;var y:integer;
+  var LastPropAddFreeSpace:boolean):PPropertyDeskriptor;
 var
   curr:PPropertyDeskriptor;
   dy:integer;
   ir:itrec;
 begin
-  result:=nil;
-  if my<0 then exit;
+  Result:=nil;
+  if my<0 then
+    exit;
   curr:=psubtree^.beginiterate(ir);
   if curr<>nil then
     repeat
-      LastPropAddFreeSpace:=false;
+      LastPropAddFreeSpace:=False;
       if curr^.IsVisible(OIManager.INTFObjInspShowEmptySections) then
-      if (not((curr^.SubNode<>nil)and(curr^.SubNode.count=0)))or OIManager.INTFObjInspShowEmptySections then
-      begin
-        dy:=my-y;
-        if (dy<rowh)and(dy>0) then
-        begin
-          result:=curr;
-          exit;
+        if (not((curr^.SubNode<>nil)and(curr^.SubNode.Count=0)))or OIManager.INTFObjInspShowEmptySections then begin
+          dy:=my-y;
+          if (dy<rowh)and(dy>0) then begin
+            Result:=curr;
+            exit;
+          end;
+          Inc(y,rowh);
+          if (curr^.SubNode<>nil)and(not curr^.Collapsed^) then
+            Result:=InternalMousetoprop(rowh,pointer(curr^.SubNode),mx,my,y,LastPropAddFreeSpace);
+          if Result<>nil then
+            exit;
         end;
-        inc(y,rowh);
-        if (curr^.SubNode<>nil)and(not curr^.Collapsed^) then result:=InternalMousetoprop(rowh,pointer(curr^.SubNode),mx,my,y,LastPropAddFreeSpace);
-        if result<>nil then exit;
-      end;
       curr:=psubtree^.iterate(ir);
     until curr=nil;
-    if not LastPropAddFreeSpace then
-    begin
+  if not LastPropAddFreeSpace then begin
     y:=y+OIManager.INTFObjInspSpaceHeight;
-    LastPropAddFreeSpace:=true;
-    end;
+    LastPropAddFreeSpace:=True;
+  end;
 end;
-function mousetoprop(rowh:integer;psubtree:PTPropertyDeskriptorArray; mx,my:integer; var y:integer):PPropertyDeskriptor;
+
+function mousetoprop(rowh:integer;psubtree:PTPropertyDeskriptorArray;mx,my:integer;var y:integer):PPropertyDeskriptor;
 var
-   lpafs:boolean;
+  lpafs:boolean;
 begin
-     lpafs:=false;
-     result:=InternalMousetoprop(rowh,psubtree,mx,my,y,lpafs);
+  lpafs:=False;
+  Result:=InternalMousetoprop(rowh,psubtree,mx,my,y,lpafs);
 end;
+
 procedure TGDBobjinsp.ClearEDContext;
 begin
-     EDContext.ppropcurrentedit:=nil;
-     //EDContext.UndoCommand:=nil;
-     //EDContext.UndoStack:=nil;
+  EDContext.ppropcurrentedit:=nil;
+  //EDContext.UndoCommand:=nil;
+  //EDContext.UndoStack:=nil;
 end;
 
 procedure TGDBobjinsp.FreeEditor;
 begin
-     //if EDContext.UndoCommand<>nil then
-     //                                  EDContext.UndoStack.KillLastCommand;
-     ClearEDContext;
-     if peditor<>nil then
-     begin
-           peditor.geteditor.OnExit:=nil;
-           peditor.geteditor.Hide;
-           peditor.Destroy;
-           peditor:=nil;
-     end;
-     freeandnil(peditor);
-     invalidate;
-     if assigned(onAfterFreeEditor) then
-                                        onAfterFreeEditor(self);
+  //if EDContext.UndoCommand<>nil then
+  //                                  EDContext.UndoStack.KillLastCommand;
+  ClearEDContext;
+  if peditor<>nil then begin
+    peditor.geteditor.OnExit:=nil;
+    peditor.geteditor.Hide;
+    peditor.Destroy;
+    peditor:=nil;
+  end;
+  FreeAndNil(peditor);
+  invalidate;
+  if assigned(onAfterFreeEditor) then
+    onAfterFreeEditor(self);
 end;
+
 procedure TGDBobjinsp.StoreAndFreeEditor;
 begin
-    if peditor<>nil then
-                      begin
-                           peditor.EditingDone2(peditor.geteditor);
-                           freeeditor;
-                      end;
+  if peditor<>nil then begin
+    peditor.EditingDone2(peditor.geteditor);
+    freeeditor;
+  end;
 end;
+
 procedure TGDBobjinsp.AsyncFreeEditorAndSelectNext;
 var
-      next:PPropertyDeskriptor;
+  Next:PPropertyDeskriptor;
 begin
-     next:=findnext(@pda,pointer(Data));
-     freeeditor;
-     if next<>nil then
-     createeditor(next);
+  Next:=findnext(@pda,pointer(Data));
+  freeeditor;
+  if Next<>nil then
+    createeditor(Next);
 end;
+
 procedure TGDBobjinsp.AsyncFreeEditor;
 begin
-     freeeditor;
+  freeeditor;
 end;
 
 procedure TGDBobjinsp.Notify;
 var
-   pld:pointer;
-   saveppropcurrentedit:PPropertyDeskriptor;
+  pld:pointer;
+  saveppropcurrentedit:PPropertyDeskriptor;
 begin
-  if sender=peditor then
-  begin
+  if Sender=peditor then begin
     saveppropcurrentedit:=EDContext.ppropcurrentedit;
-    if assigned(onNotify)then
-                             onNotify(CurrData.Ctx);
+    if assigned(onNotify) then
+      onNotify(CurrData.Ctx);
 
     {if EDContext.UndoCommand<>nil then
                                       begin
@@ -1097,11 +1085,10 @@ begin
     pld:=peditor.PInstance;
 
     if (Command=TMNC_RunFastEditor) then
-                                        EDContext.ppropcurrentedit.FastEditors[0].Procs.OnRunFastEditor(pld);
+      EDContext.ppropcurrentedit.FastEditors[0].Procs.OnRunFastEditor(pld);
     if peditor.changed then
-                           UpdateObjectInInsp;
-   if (Command=TMNC_RunFastEditor)or(Command=TMNC_EditingDoneLostFocus){or(Command=TMNC_EditingDoneDoNothing)} then
-{
+      UpdateObjectInInsp;
+    if (Command=TMNC_RunFastEditor)or(Command=TMNC_EditingDoneLostFocus){or(Command=TMNC_EditingDoneDoNothing)} then {
 or(Command=TMNC_EditingDoneDoNothing)
 Revision: 1130
 Author: zamtmn
@@ -1115,13 +1102,14 @@ Modified : /trunk/cad_source/languade/varmandef.pas
 
 но помоему оно тут ненужно, т.к. закрывает открываемый едитор
 }
-                                      begin
-                                           Application.QueueAsyncCall(AsyncFreeEditor,0);
-                                      end;
-   if (Command=TMNC_EditingDoneEnterKey) then
-                                      Application.QueueAsyncCall(AsyncFreeEditorAndSelectNext,ptruint(saveppropcurrentedit));
+    begin
+      Application.QueueAsyncCall(AsyncFreeEditor,0);
+    end;
+    if (Command=TMNC_EditingDoneEnterKey) then
+      Application.QueueAsyncCall(AsyncFreeEditorAndSelectNext,ptruint(saveppropcurrentedit));
   end;
 end;
+
 procedure TGDBobjinsp.UpdateObjectInInsp;
 var
   OnFieldModifyProc:TOnFieldModifyProc;
@@ -1129,17 +1117,18 @@ var
 begin
   PParentType:=CurrData.PType;
   OnFieldModifyProc:=nil;
-  while (@OnFieldModifyProc=nil)and(PParentType<>nil)do begin
+  while (@OnFieldModifyProc=nil)and(PParentType<>nil) do begin
     OnFieldModifyProc:=OIManager.OnFieldModifyProc(PParentType);
     PParentType:=PParentType^.GetParentTypedef;
   end;
-  if assigned(onUpdateObjectInInsp)then
-     onUpdateObjectInInsp(EDContext,CurrData.PType,CurrData.Ctx,CurrData.PObj,OnFieldModifyProc);
+  if assigned(onUpdateObjectInInsp) then
+    onUpdateObjectInInsp(EDContext,CurrData.PType,CurrData.Ctx,CurrData.PObj,OnFieldModifyProc);
   self.updateinsp;
 end;
-procedure TGDBobjinsp.ScrollBy(DeltaX, DeltaY: Integer);
+
+procedure TGDBobjinsp.ScrollBy(DeltaX,DeltaY:integer);
 var
-   r:trect;
+  r:trect;
 begin
   {$IFNDEF WINDOWS}
   inherited;
@@ -1149,92 +1138,88 @@ begin
   r.Top:=r.Bottom;
   ScrollWindowEx(Handle, DeltaX, DeltaY, nil, {nil}@r, 0, nil, {SW_INVALIDATE or SW_ERASE}SW_SCROLLCHILDREN);
   {$ENDIF}
-  if peditor<>nil then
-  begin
-     //peditor.geteditor.SetBounds(NameColumnWidth+1,EDContext.ppropcurrentedit.rect.Top+DeltaY,clientwidth-NameColumnWidth-2,EDContext.ppropcurrentedit.rect.Bottom-EDContext.ppropcurrentedit.rect.Top+1);
-     //peditor.geteditor.Invalidate;
-     if (EDContext.ppropcurrentedit.rect.Top<HeadersHeight+VertScrollBar.ScrollPos-1)
-     or (EDContext.ppropcurrentedit.rect.Top>clientheight+VertScrollBar.ScrollPos-1)then
-     begin
-        Application.QueueAsyncCall(AsyncFreeEditor,0);
-        peditor.geteditor.Hide;
-     end;
+  if peditor<>nil then begin
+    //peditor.geteditor.SetBounds(NameColumnWidth+1,EDContext.ppropcurrentedit.rect.Top+DeltaY,clientwidth-NameColumnWidth-2,EDContext.ppropcurrentedit.rect.Bottom-EDContext.ppropcurrentedit.rect.Top+1);
+    //peditor.geteditor.Invalidate;
+    if (EDContext.ppropcurrentedit.rect.Top<HeadersHeight+VertScrollBar.ScrollPos-1)  or
+      (EDContext.ppropcurrentedit.rect.Top>clientheight+VertScrollBar.ScrollPos-1) then begin
+      Application.QueueAsyncCall(AsyncFreeEditor,0);
+      peditor.geteditor.Hide;
+    end;
   end;
-   //UpdateScrollbars;
-   invalidate;
+  //UpdateScrollbars;
+  invalidate;
 end;
 
 procedure TGDBobjinsp.createscrollbars;
 var
-   //changed:boolean;
-   ch:integer;
+  //changed:boolean;
+  ch:integer;
 begin
 
-     //ебаный скролинг работает везде по разному, или я туплю... переписывать надо эту хрень
-     ch:=contentheigth+HeadersHeight;
+  //ебаный скролинг работает везде по разному, или я туплю... переписывать надо эту хрень
+  ch:=contentheigth+HeadersHeight;
      {if (VertScrollBar.Range=ch)or(VertScrollBar.Position=0) then
                                               changed:=false
                                           else
                                               changed:=true;}
-     self.VertScrollBar.Range:=ch;
-     self.VertScrollBar.page:=height;
-     self.VertScrollBar.Tracking:=true;
-     self.VertScrollBar.Smooth:=true;
-     self.VertScrollBar.Increment:=200;
-     if ch<height  then
-                                 begin
-                                      {$IFNDEF LCLQt}
-                                      //ScrollBy(0,-VertScrollBar.Position);
-                                      {$ENDIF}
-                                      VertScrollBar.Position:=0;
-                                      self.VertScrollBar.page:=height;
-                                      self.VertScrollBar.Range:=height;
-                                      self.VertScrollBar.Tracking:=false;
-                                      self.VertScrollBar.Smooth:=false;
-                                      self.VertScrollBar.Increment:=200;
-                                 end;
-     UpdateScrollbars;
+  self.VertScrollBar.Range:=ch;
+  self.VertScrollBar.page:=Height;
+  self.VertScrollBar.Tracking:=True;
+  self.VertScrollBar.Smooth:=True;
+  self.VertScrollBar.Increment:=200;
+  if ch<Height then begin
+    {$IFNDEF LCLQt}
+    //ScrollBy(0,-VertScrollBar.Position);
+    {$ENDIF}
+    VertScrollBar.Position:=0;
+    self.VertScrollBar.page:=Height;
+    self.VertScrollBar.Range:=Height;
+    self.VertScrollBar.Tracking:=False;
+    self.VertScrollBar.Smooth:=False;
+    self.VertScrollBar.Increment:=200;
+  end;
+  UpdateScrollbars;
 end;
-function TGDBobjinsp.IsMouseOnSpliter(pp:PPropertyDeskriptor; X,Y:Integer):boolean;
+
+function TGDBobjinsp.IsMouseOnSpliter(pp:PPropertyDeskriptor;X,Y:integer):boolean;
 var
-   my:integer;
-   canresplit:boolean;
+  my:integer;
+  canresplit:boolean;
 begin
-  result:=false;
+  Result:=False;
   my:=y-self.VertScrollBar.Position;
-  if IsHeadersEnabled then
-  begin
-  if (my>0)and(my<HeadersHeight) then
-                                     canresplit:=true
-                                 else
-                                     canresplit:=false;
-  end
-     else
-         canresplit:=true;
+  if IsHeadersEnabled then begin
+    if (my>0)and(my<HeadersHeight) then
+      canresplit:=True
+    else
+      canresplit:=False;
+  end else
+    canresplit:=True;
 
   if canresplit then
-  if (abs(x-NameColumnWidth)<spliterhalfwidth) then
-                                           result:=true;
-end;
-procedure TGDBobjinsp.MouseLeave;
-begin
-     if OnMousePP<>nil then
-                           begin
-                                clearRTstate(OnMousePP.FastEditors);
-                                //OnMousePP.FastEditorState:=TFES_Default;
-                                OnMousePP:=nil;
-                                invalidate;
-                           end;
-     inherited;
+    if (abs(x-NameColumnWidth)<spliterhalfwidth) then
+      Result:=True;
 end;
 
-procedure TGDBobjinsp.MouseMove(Shift: TShiftState; X, Y: Integer);
+procedure TGDBobjinsp.MouseLeave;
+begin
+  if OnMousePP<>nil then begin
+    clearRTstate(OnMousePP.FastEditors);
+    //OnMousePP.FastEditorState:=TFES_Default;
+    OnMousePP:=nil;
+    invalidate;
+  end;
+  inherited;
+end;
+
+procedure TGDBobjinsp.MouseMove(Shift:TShiftState;X,Y:integer);
 //procedure TGDBobjinsp.Pre_MouseMove(fwkeys:longint; x,y:SmallInt; var r:HandledMsg);
 var
   my:integer;
   pp:PPropertyDeskriptor;
-//  tb:boolean;
-//  pb:Pboolean;
+  //  tb:boolean;
+  //  pb:Pboolean;
   tp:pointer;
   tempstr:string;
   //FESize:TSize;
@@ -1244,90 +1229,78 @@ var
   rowh:integer;
 begin
   rowh:=getRowHeight;
-    needredraw:=false;
-    if mresplit then
-                  begin
-                       if NameColumnWidth<subtab then
-                                             begin
-                                                  if x>NameColumnWidth then begin
-                                                    NameColumnWidth:=x;
-                                                    NameColumnWidthCorrector.LastNameColumnWidth:=NameColumnWidth;
-                                                    NameColumnWidthCorrector.LastClientWidth:=clientwidth;
-                                                  end
-                                             end
-                  else if NameColumnWidth>clientwidth-subtab then
-                                                         begin
-                                                              if x<NameColumnWidth then begin
-                                                                NameColumnWidth:=x;
-                                                                NameColumnWidthCorrector.LastNameColumnWidth:=NameColumnWidth;
-                                                                NameColumnWidthCorrector.LastClientWidth:=clientwidth;
-                                                              end;
-                                                         end
-                  else begin
-                         NameColumnWidth:=x;
-                         NameColumnWidthCorrector.LastNameColumnWidth:=NameColumnWidth;
-                         NameColumnWidthCorrector.LastClientWidth:=clientwidth;
-                       end;
-                       repaint;
-                       updateeditorBounds;
-                       exit;
-                  end;
+  needredraw:=False;
+  if mresplit then begin
+    if NameColumnWidth<subtab then begin
+      if x>NameColumnWidth then begin
+        NameColumnWidth:=x;
+        NameColumnWidthCorrector.LastNameColumnWidth:=NameColumnWidth;
+        NameColumnWidthCorrector.LastClientWidth:=clientwidth;
+      end;
+    end else if NameColumnWidth>clientwidth-subtab then begin
+      if x<NameColumnWidth then begin
+        NameColumnWidth:=x;
+        NameColumnWidthCorrector.LastNameColumnWidth:=NameColumnWidth;
+        NameColumnWidthCorrector.LastClientWidth:=clientwidth;
+      end;
+    end else begin
+      NameColumnWidth:=x;
+      NameColumnWidthCorrector.LastNameColumnWidth:=NameColumnWidth;
+      NameColumnWidthCorrector.LastClientWidth:=clientwidth;
+    end;
+    repaint;
+    updateeditorBounds;
+    exit;
+  end;
   y:=y+VertScrollBar.scrollpos-self.BorderWidth;
   //application.HintPause:=1;
   //application.HintShortPause:=10;
   my:=HeadersHeight;
   pp:=mousetoprop(rowh,@pda,x,y,my);
-  if OnMousePP<>pp then
-                       begin
-                            needredraw:=true;
-                            if OnMousePP<>nil then
-                                                  clearRTstate(OnMousePP.FastEditors);
-                                                  //OnMousePP.FastEditorState:=TFES_Default;
-                            OnMousePP:=pp;
-                       end;
+  if OnMousePP<>pp then begin
+    needredraw:=True;
+    if OnMousePP<>nil then
+      clearRTstate(OnMousePP.FastEditors);
+    //OnMousePP.FastEditorState:=TFES_Default;
+    OnMousePP:=pp;
+  end;
   if IsMouseOnSpliter(pp,X,Y) then
-                                self.Cursor:=crHSplit
-                            else
-                                self.Cursor:=crDefault;
+    self.Cursor:=crHSplit
+  else
+    self.Cursor:=crDefault;
 
-  if (pp=nil)or(EDContext.ppropcurrentedit=pp) then
-  begin
-        self.Hint:='';
-        self.ShowHint:=false;
-       oldpp:=pp;
-       if needredraw then
-                    invalidate;
-       exit;
+  if (pp=nil)or(EDContext.ppropcurrentedit=pp) then begin
+    self.Hint:='';
+    self.ShowHint:=False;
+    oldpp:=pp;
+    if needredraw then
+      invalidate;
+    exit;
   end;
 
-  if assigned(pp.FastEditors) then
-  begin
-   if ssLeft in Shift then
-                          currstate:=TFES_Pressed
-                      else
-                          currstate:=TFES_Hot;
-   for i:=0 to pp.FastEditors.Size-1 do
-   begin
-     if pp.FastEditors.Mutable[i]^.FastEditorDrawed then
-     begin
-       if PtInRect(pp.FastEditors[i].FastEditorRect,Point(x, y)) then
-                                                                     pp.FastEditors.Mutable[i]^.FastEditorState:=currstate
-                                                                 else
-                                                                     pp.FastEditors.Mutable[i]^.FastEditorState:=TFES_Default;
-     end;
-   end;
-  needredraw:=true;
+  if assigned(pp.FastEditors) then begin
+    if ssLeft in Shift then
+      currstate:=TFES_Pressed
+    else
+      currstate:=TFES_Hot;
+    for i:=0 to pp.FastEditors.Size-1 do begin
+      if pp.FastEditors.Mutable[i]^.FastEditorDrawed then begin
+        if PtInRect(pp.FastEditors[i].FastEditorRect,Point(x,y)) then
+          pp.FastEditors.Mutable[i]^.FastEditorState:=currstate
+        else
+          pp.FastEditors.Mutable[i]^.FastEditorState:=TFES_Default;
+      end;
+    end;
+    needredraw:=True;
   end;
 
-  if oldpp<>pp then
-  begin
-       if oldpp<>nil then
-                         begin
-                         clearRTstate(oldpp.FastEditors);
-                         //oldpp.FastEditorState:=TFES_Default;
-                         //drawvalue(oldpp,canvas,false);
-                         needredraw:=true;
-                         end;
+  if oldpp<>pp then begin
+    if oldpp<>nil then begin
+      clearRTstate(oldpp.FastEditors);
+      //oldpp.FastEditorState:=TFES_Default;
+      //drawvalue(oldpp,canvas,false);
+      needredraw:=True;
+    end;
 (*  TI.cbSize := SizeOf(TOOLINFO);
   TI.uFlags := TTF_SUBCLASS;
   TI.uId := 0;
@@ -1353,46 +1326,44 @@ begin
     Application.CancelHint;
     tempstr:=pp^.Name;
     if pp^.ValKey<>'' then
-                         tempstr:=tempstr+'   '+pp^.ValKey+':'+pp^.ValType;
+      tempstr:=tempstr+'   '+pp^.ValKey+':'+pp^.ValType;
     if pp^.Value<>'' then
-                         tempstr:=tempstr+':='+pp^.Value;
+      tempstr:=tempstr+':='+pp^.Value;
     //tempstr:=ReplaceStr(tempstr,'|',';');
-  self.Hint:=tempstr;
-  self.ShowHint:=true;
+    self.Hint:=tempstr;
+    self.ShowHint:=True;
 
-  //SendMessage(MainFormN.hToolTip, TTM_ADDTOOL, 0, LPARAM(@ti));
-  end
-  else
-  Application.ActivateHint(ClientToScreen(Point(X, Y)));
+    //SendMessage(MainFormN.hToolTip, TTM_ADDTOOL, 0, LPARAM(@ti));
+  end else
+    Application.ActivateHint(ClientToScreen(Point(X,Y)));
 
 
   if needredraw then
-                    invalidate;
+    invalidate;
 
   oldpp:=pp;
-  if fldaReadOnly in pp^.Attr then exit;
+  if fldaReadOnly in pp^.Attr then
+    exit;
 
   exit;
 
-  if pp^.PTypeManager<>nil then
-  begin
-    if peditor<>nil then
-    begin
+  if pp^.PTypeManager<>nil then begin
+    if peditor<>nil then begin
       tp:=CurrData.PObj;
       buildproplist({EDContext.UndoStack,}CurrData.UnitsFormat,CurrData.PType,property_correct,tp);
       //peditor^.done;
       //Freemem(pointer(peditor));
       EDContext.ppropcurrentedit:=pp;
     end;
-    PEditor:=pp^.PTypeManager^.CreateEditor(@self,pp.rect,pp^.valueAddres,nil,false,'этого не должно тут быть',rowh,CurrData.UnitsFormat).Editor;
-    if PEditor<>nil then
-    begin
+    PEditor:=pp^.PTypeManager^.CreateEditor(@self,pp.rect,pp^.valueAddres,nil,False,'этого не должно тут быть',
+      rowh,CurrData.UnitsFormat).Editor;
+    if PEditor<>nil then begin
       //PEditor^.show;
     end;
   end;
 end;
 //procedure TGDBobjinsp.pre_mousedown;
-procedure TGDBobjinsp.MouseUp(Button: TMouseButton; Shift:TShiftState; X,Y:Integer);
+procedure TGDBobjinsp.MouseUp(Button:TMouseButton;Shift:TShiftState;X,Y:integer);
 var
   pp:PPropertyDeskriptor;
   my:integer;
@@ -1402,77 +1373,66 @@ var
   //rowh:integer;
 begin
   //rowh:=OIManager.RowHeightOverride.ValueOrDefault(OIManager.DefaultRowHeight);
-     inherited;
-     if (button=mbLeft)
-    and (mresplit=true) then
-                                    begin
-                                    mresplit:=false;
-                                    exit;
-                                    end;
-     if peditor<>nil then
-     if peditor.geteditor.Visible=false then
-                                            begin
-                                                 peditor.geteditor.Visible:=true;
-                                                 peditor.geteditor.setfocus;
-                                                 if  peditor.geteditor is  TComboBox then
-                                                 if  (peditor.geteditor as  TComboBox).Style in [csDropDownList,csOwnerDrawFixed,csOwnerDrawVariable] then
-                                                 TComboBox(peditor.geteditor).DroppedDown:=true;//автооткрытие комбика мещает вводу, открываем только те что без возможности ввода значений
-                                                 exit;
-                                            end;
-     if (button=mbLeft) then
-                            begin
-                                 y:=y+VertScrollBar.scrollpos-self.BorderWidth;
-                                 my:=HeadersHeight;
-                                 pp:=mousetoprop(getRowHeight,@pda,x,y,my);
-                                 if pp=nil then
-                                               exit;
-                                 if assigned(pp.FastEditors)then
-                                 begin
-                                  needexit:=false;
-                                  for i:=0 to pp.FastEditors.size-1 do
-                                  if pp.FastEditors[i].FastEditorDrawed then
-                                  if PtInRect(pp.FastEditors[i].FastEditorRect,point(x,y)) then
-                                  if pp.FastEditors[i].FastEditorState=TFES_Pressed then
-                                  begin
-                                  pp.FastEditors.Mutable[i]^.FastEditorState:=TFES_Default;
-                                  if assigned(pp.FastEditors[i].Procs.OnRunFastEditor)then
-                                  begin
-                                  StoreAndFreeEditor;;
-                                  EDContext.ppropcurrentedit:=pp;
-                                  //pp.FastEditor.OnRunFastEditor(pp.valueAddres)
-                                  if pp.FastEditors[i].Procs.UndoInsideFastEditor then
-                                                                            begin
-                                                                            pp.FastEditors[i].Procs.OnRunFastEditor(pp.valueAddres);
-                                                                            needexit:=true;
-                                                                            end
-                                                                        else
-                                                                            begin
-                                                                            if (*IsCurrObjInUndoContext({GDBobj,}CurrPObj)*)false then
-                                                                            begin
-                                                                            //EDContext.UndoStack:=GetUndoStack;
-                                                                            //EDContext.UndoCommand:=EDContext.UndoStack.PushCreateTTypedChangeCommand(pp^.valueAddres,pp^.PTypeManager);
-                                                                           // EDContext.UndoCommand.PDataOwner:=CurrPObj;
+  inherited;
+  if (button=mbLeft)  and (mresplit=True) then begin
+    mresplit:=False;
+    exit;
+  end;
+  if peditor<>nil then
+    if peditor.geteditor.Visible=False then begin
+      peditor.geteditor.Visible:=True;
+      peditor.geteditor.SetFocus;
+      if peditor.geteditor is  TComboBox then
+        if (peditor.geteditor as  TComboBox).Style in [csDropDownList,csOwnerDrawFixed,csOwnerDrawVariable] then
+          TComboBox(peditor.geteditor).DroppedDown:=True;
+      //автооткрытие комбика мещает вводу, открываем только те что без возможности ввода значений
+      exit;
+    end;
+  if (button=mbLeft) then begin
+    y:=y+VertScrollBar.scrollpos-self.BorderWidth;
+    my:=HeadersHeight;
+    pp:=mousetoprop(getRowHeight,@pda,x,y,my);
+    if pp=nil then
+      exit;
+    if assigned(pp.FastEditors) then begin
+      needexit:=False;
+      for i:=0 to pp.FastEditors.size-1 do
+        if pp.FastEditors[i].FastEditorDrawed then
+          if PtInRect(pp.FastEditors[i].FastEditorRect,point(x,y)) then
+            if pp.FastEditors[i].FastEditorState=TFES_Pressed then begin
+              pp.FastEditors.Mutable[i]^.FastEditorState:=TFES_Default;
+              if assigned(pp.FastEditors[i].Procs.OnRunFastEditor) then begin
+                StoreAndFreeEditor;;
+                EDContext.ppropcurrentedit:=pp;
+                //pp.FastEditor.OnRunFastEditor(pp.valueAddres)
+                if pp.FastEditors[i].Procs.UndoInsideFastEditor then begin
+                  pp.FastEditors[i].Procs.OnRunFastEditor(pp.valueAddres);
+                  needexit:=True;
+                end else begin
+                  if (*IsCurrObjInUndoContext({GDBobj,}CurrPObj)*)False then begin
+                    //EDContext.UndoStack:=GetUndoStack;
+                    //EDContext.UndoCommand:=EDContext.UndoStack.PushCreateTTypedChangeCommand(pp^.valueAddres,pp^.PTypeManager);
+                    // EDContext.UndoCommand.PDataOwner:=CurrPObj;
 
-                                                                            pp.FastEditors[i].Procs.OnRunFastEditor(pp.valueAddres);
-                                                                            //EDContext.UndoCommand.ComitFromObj;
+                    pp.FastEditors[i].Procs.OnRunFastEditor(pp.valueAddres);
+                    //EDContext.UndoCommand.ComitFromObj;
 
-                                                                            //EDContext.UndoStack:=nil;
-                                                                            //EDContext.UndoCommand:=nil;
-                                                                            needexit:=true;
-                                                                            end
-                                                                            else
-                                                                                begin
-                                                                                pp.FastEditors[i].Procs.OnRunFastEditor(pp.valueAddres);
-                                                                                needexit:=true;
-                                                                                end;
-                                                                            end;
-                                  end;
-                                  UpdateObjectInInsp;
-                                  EDContext.ppropcurrentedit:=nil;
-                                  invalidate;
-                                  if needexit then system.break;
-                                  end;
-                                 end
+                    //EDContext.UndoStack:=nil;
+                    //EDContext.UndoCommand:=nil;
+                    needexit:=True;
+                  end else begin
+                    pp.FastEditors[i].Procs.OnRunFastEditor(pp.valueAddres);
+                    needexit:=True;
+                  end;
+                end;
+              end;
+              UpdateObjectInInsp;
+              EDContext.ppropcurrentedit:=nil;
+              invalidate;
+              if needexit then
+                system.break;
+            end;
+    end;
 
                                  (*-----if assigned(pp.FastEditor.OnGetPrefferedFastEditorSize) then
                                  begin
@@ -1513,7 +1473,7 @@ begin
                                                                                            invalidate;
                                                                                       end
                             end;*)
-                            end;
+  end;
 
 end;
 (*function TGDBobjinsp.IsCurrObjInUndoContext;
@@ -1523,10 +1483,10 @@ begin
   else
     result:=false;
 end;*)
-constructor TGDBobjinsp.Create(AOwner: TComponent);
+constructor TGDBobjinsp.Create(AOwner:TComponent);
 begin
-     inherited;
-     //_IsCurrObjInUndoContext:=nil;
+  inherited;
+  //_IsCurrObjInUndoContext:=nil;
 end;
 
 procedure TGDBobjinsp.createeditor(pp:PPropertyDeskriptor);
@@ -1536,151 +1496,139 @@ var
   TED:TEditorDesc;
   editorcontrol:TWinControl;
   tr:TRect;
-  initialvalue:String;
+  initialvalue:string;
 begin
-     if pp^.SubNode<>nil then
-     begin
-       StoreAndFreeEditor;
-       if pByte(pp^.Collapsed)^<>0 then pByte(pp^.Collapsed)^:=1;
-                                           pp^.Collapsed^:=not(pp^.Collapsed^);
-       updateinsp;
-       //draw;
-       //exit;
-     end
-   else
-   begin
-      if fldaReadOnly in pp^.Attr then exit;
-      if pp^.PTypeManager<>nil then
-     begin
-       if peditor<>nil then
-       begin
-         tp:=CurrData.PObj;
-         {GDBobjinsp.}buildproplist({EDContext.UndoStack,}CurrData.UnitsFormat,CurrData.PType,property_correct,tp);
-         StoreAndFreeEditor;
-       end;
-       vsa.init(50);
+  if pp^.SubNode<>nil then begin
+    StoreAndFreeEditor;
+    if pbyte(pp^.Collapsed)^<>0 then
+      pbyte(pp^.Collapsed)^:=1;
+    pp^.Collapsed^:=not(pp^.Collapsed^);
+    updateinsp;
+    //draw;
+    //exit;
+  end else begin
+    if fldaReadOnly in pp^.Attr then
+      exit;
+    if pp^.PTypeManager<>nil then begin
+      if peditor<>nil then begin
+        tp:=CurrData.PObj;
+        {GDBobjinsp.}buildproplist({EDContext.UndoStack,}CurrData.UnitsFormat,CurrData.PType,property_correct,tp);
+        StoreAndFreeEditor;
+      end;
+      vsa.init(50);
 
-       if assigned(onGetOtherValues) then
-          onGetOtherValues(vsa,pp^.valkey,CurrData);
+      if assigned(onGetOtherValues) then
+        onGetOtherValues(vsa,pp^.valkey,CurrData);
 
-       if assigned(pp^.valueAddres) then
-       begin
-         if fldaDifferent in pp^.Attr then
-                                               initialvalue:=OIManager.DifferentName
-                                           else
-                                               initialvalue:='';
-         tr:=pp^.rect;
-       if assigned(pp^.Decorators.OnCreateEditor) then
-                                                      TED:=pp^.Decorators.OnCreateEditor(self,tr,pp^.valueAddres,@vsa,false,pp^.PTypeManager,CurrData.UnitsFormat)
-                                                  else
-                                                      TED:=pp^.PTypeManager^.CreateEditor(self,tr,pp^.valueAddres,@vsa,{false}true,initialvalue,getRowHeight,CurrData.UnitsFormat);
-     case ted.Mode of
-                     TEM_Integrate:begin
-                                       TED.Editor.SetEditorBounds(pp,OIManager.INTFObjInspShowOnlyHotFastEditors);
-                                       editorcontrol:=TED.Editor.geteditor;
-                                       //editorcontrol.SetBounds(tr.Left+2,tr.Top,tr.Right-tr.Left-2,tr.Bottom-tr.Top);
-                                       if (editorcontrol is TComboBox) then begin
-                                         {$IFNDEF LCLWIN32}
-                                         editorcontrol.Visible:=false;
-                                         {$ENDIF}
-                                         editorcontrol.Parent:=self;
-                                         SetComboSize(editorcontrol as TCombobox,getRowHeight-6,CBDoNotTouch);
-                                         //(editorcontrol as TCombobox).itemheight:=pp^.rect.Bottom-pp^.rect.Top-6;
-                                         if (editorcontrol as TCombobox).Style in [csDropDownList,csOwnerDrawFixed,csOwnerDrawVariable] then
-                                         (editorcontrol as TCombobox).droppeddown:=true;//автооткрытие комбика мещает вводу, открываем только те что без возможности ввода значений
-                                       end else if (editorcontrol is TColorBox) then begin
-                                         {$IFNDEF LCLWIN32}
-                                         editorcontrol.Visible:=false;
-                                         {$ENDIF}
-                                         editorcontrol.Parent:=self;
-                                         (editorcontrol as TColorBox).droppeddown:=true;
-                                       end else
-                                         editorcontrol.Parent:=self;
-                                       PEditor:=TED.Editor;
-                                  end;
-     end;
-     end;
-       vsa.done;
-       if assigned(PEditor){<>nil} then
-       begin
-            //GetUndoStack;
-            EDContext.ppropcurrentedit:=pp;
-            //EDContext.UndoStack:=GetUndoStack;
+      if assigned(pp^.valueAddres) then begin
+        if fldaDifferent in pp^.Attr then
+          initialvalue:=OIManager.DifferentName
+        else
+          initialvalue:='';
+        tr:=pp^.rect;
+        if assigned(pp^.Decorators.OnCreateEditor) then
+          TED:=
+            pp^.Decorators.OnCreateEditor(self,tr,pp^.valueAddres,@vsa,False,pp^.PTypeManager,CurrData.UnitsFormat)
+        else
+          TED:=pp^.PTypeManager^.CreateEditor(self,tr,pp^.valueAddres,@vsa,
+            {false}True,initialvalue,getRowHeight,CurrData.UnitsFormat);
+        case ted.Mode of
+          TEM_Integrate:begin
+            TED.Editor.SetEditorBounds(pp,OIManager.INTFObjInspShowOnlyHotFastEditors);
+            editorcontrol:=TED.Editor.geteditor;
+            //editorcontrol.SetBounds(tr.Left+2,tr.Top,tr.Right-tr.Left-2,tr.Bottom-tr.Top);
+            if (editorcontrol is TComboBox) then begin
+              {$IFNDEF LCLWIN32}
+              editorcontrol.Visible:=False;
+              {$ENDIF}
+              editorcontrol.Parent:=self;
+              SetComboSize(editorcontrol as TCombobox,getRowHeight-6,CBDoNotTouch);
+              //(editorcontrol as TCombobox).itemheight:=pp^.rect.Bottom-pp^.rect.Top-6;
+              if (editorcontrol as TCombobox).Style in [csDropDownList,csOwnerDrawFixed,csOwnerDrawVariable] then
+                (editorcontrol as TCombobox).droppeddown:=True;
+              //автооткрытие комбика мещает вводу, открываем только те что без возможности ввода значений
+            end else if (editorcontrol is TColorBox) then begin
+              {$IFNDEF LCLWIN32}
+              editorcontrol.Visible:=False;
+              {$ENDIF}
+              editorcontrol.Parent:=self;
+              (editorcontrol as TColorBox).droppeddown:=True;
+            end else
+              editorcontrol.Parent:=self;
+            PEditor:=TED.Editor;
+          end;
+        end;
+      end;
+      vsa.done;
+      if assigned(PEditor){<>nil} then begin
+        //GetUndoStack;
+        EDContext.ppropcurrentedit:=pp;
+        //EDContext.UndoStack:=GetUndoStack;
 
-            //if (*IsCurrObjInUndoContext({GDBobj,}CurrPObj)*)false then
-            //if EDContext.UndoStack<>nil then
-            //begin
-            //     EDContext.UndoCommand:=EDContext.UndoStack.PushCreateTTypedChangeCommand(EDContext.ppropcurrentedit^.valueAddres,EDContext.ppropcurrentedit^.PTypeManager);
-            //     EDContext.UndoCommand.PDataOwner:=CurrPObj;
-            //end;
+        //if (*IsCurrObjInUndoContext({GDBobj,}CurrPObj)*)false then
+        //if EDContext.UndoStack<>nil then
+        //begin
+        //     EDContext.UndoCommand:=EDContext.UndoStack.PushCreateTTypedChangeCommand(EDContext.ppropcurrentedit^.valueAddres,EDContext.ppropcurrentedit^.PTypeManager);
+        //     EDContext.UndoCommand.PDataOwner:=CurrPObj;
+        //end;
 
-            peditor.OwnerNotify:=self.Notify;
-            if peditor.geteditor.Visible then
-                                             peditor.geteditor.setfocus;
-         //PEditor^.SetFocus;
-         //PEditor^.show;
-         //PEditor^.SetFocus;
-       end;
-     end;
-end;
+        peditor.OwnerNotify:=self.Notify;
+        if peditor.geteditor.Visible then
+          peditor.geteditor.SetFocus;
+        //PEditor^.SetFocus;
+        //PEditor^.show;
+        //PEditor^.SetFocus;
+      end;
+    end;
+  end;
 end;
 
-procedure TGDBobjinsp.MouseDown(Button: TMouseButton; Shift: TShiftState;X, Y: Integer);
+procedure TGDBobjinsp.MouseDown(Button:TMouseButton;Shift:TShiftState;X,Y:integer);
 var
   my:integer;
   pp:PPropertyDeskriptor;
   //menu:TPopupMenu;
   //fesize:tsize;
   clickonheader:boolean;
-  i,count:integer;
+  i,Count:integer;
   handled:boolean;
 begin
   inherited;
-  if (y<0)or(y>clientheight)or(x<0)or(x>clientwidth) then
-  begin
-       StoreAndFreeEditor;
-       exit;
+  if (y<0)or(y>clientheight)or(x<0)or(x>clientwidth) then begin
+    StoreAndFreeEditor;
+    exit;
   end;
-  if (y<HeadersHeight) then
-  begin
-       if button<>mbLeft then
-                             StoreAndFreeEditor;
-       clickonheader:=true;
-  end
-  else
-      clickonheader:=false;
+  if (y<HeadersHeight) then begin
+    if button<>mbLeft then
+      StoreAndFreeEditor;
+    clickonheader:=True;
+  end else
+    clickonheader:=False;
   y:=y+VertScrollBar.scrollpos-self.BorderWidth;
   //if proptreeptr=nil then exit;
   my:=HeadersHeight;
   pp:=mousetoprop(getRowHeight,@pda,x,y,my);
 
-  if (button=mbLeft)
-  and (IsMouseOnSpliter(pp,X,Y)) then
-                                    begin
-                                    mresplit:=true;
-                                    exit;
-                                    end;
+  if (button=mbLeft)  and (IsMouseOnSpliter(pp,X,Y)) then begin
+    mresplit:=True;
+    exit;
+  end;
   if (pp=nil)and(button=mbLeft) then
-                exit;
-  if (button=mbLeft) then
-                         begin
-                               if not clickonheader then
-                               begin
-                                  if assigned(pp.FastEditors)then
-                                  begin
-                                  count:=0;
-                                  for i:=0 to pp.FastEditors.size-1 do
-                                  if pp.FastEditors[i].FastEditorDrawed then
-                                  if PtInRect(pp.FastEditors[i].FastEditorRect,point(x,y)) then
-                                                                                               begin
-                                                                                                    pp.FastEditors.Mutable[i]^.FastEditorState:=TFES_Pressed;
-                                                                                                    inc(count);
-                                                                                               end;
-                                  if count=0 then
-                                                 createeditor(pp);
-                                  end
-                                  else
-                                      createeditor(pp);
+    exit;
+  if (button=mbLeft) then begin
+    if not clickonheader then begin
+      if assigned(pp.FastEditors) then begin
+        Count:=0;
+        for i:=0 to pp.FastEditors.size-1 do
+          if pp.FastEditors[i].FastEditorDrawed then
+            if PtInRect(pp.FastEditors[i].FastEditorRect,point(x,y)) then begin
+              pp.FastEditors.Mutable[i]^.FastEditorState:=TFES_Pressed;
+              Inc(Count);
+            end;
+        if Count=0 then
+          createeditor(pp);
+      end else
+        createeditor(pp);
                                   (*if assigned(pp.FastEditor.OnGetPrefferedFastEditorSize)and(pp.FastEditorDrawed) then
                                   begin
                                   fesize:=pp.FastEditor.OnGetPrefferedFastEditorSize(pp.valueAddres);
@@ -1701,14 +1649,12 @@ begin
                                   end
                                      else
                                          createeditor(pp)*)
-                               end;
-                         end
-                     else
-                         begin
-                              begin
-                                   currpd:=pp;
-                                   if assigned(OnContextPopup) then
-                                     OnContextPopup(self,point(X,Y),handled);
+    end;
+  end else begin
+    begin
+      currpd:=pp;
+      if assigned(OnContextPopup) then
+        OnContextPopup(self,point(X,Y),handled);
                                    (*menu:=nil;
                                    if (clickonheader)or(pp=nil) then
                                    menu:=TPopupMenu(application.FindComponent({MenuNameModifier}'MENU_'+'OBJINSPHEADERCXMENU'))
@@ -1723,8 +1669,8 @@ begin
                                    currpd:=pp;
                                    menu.PopUp;
                                    end;*)
-                              end;
-                         end;
+    end;
+  end;
 
   contentheigth:=gettreeh;
   createscrollbars;
@@ -1742,49 +1688,43 @@ end;
 
 procedure TGDBobjinsp.rebuild;
 var
-   tp:pointer;
+  tp:pointer;
 begin
-    pda.cleareraseobj;
-    if peditor<>nil then
-    begin
-      //--MultiSelectEditor not work with this self.freeeditor;
-    end;
-    //CurrObjGDBType:=exttype;
-    //CurrPObj:=addr;
+  pda.cleareraseobj;
+  if peditor<>nil then begin
+    //--MultiSelectEditor not work with this self.freeeditor;
+  end;
+  //CurrObjGDBType:=exttype;
+  //CurrPObj:=addr;
     {if (CurrObjGDBType.GetTypeAttributes and TA_OBJECT)<>0 then
       GDBobj:=true
     else
       GDBobj:=false;}
-    tp:=CurrData.PObj;
-    buildproplist({EDContext.UndoStack,}CurrData.UnitsFormat,CurrData.PType,property_build,tp);
-    contentheigth:=gettreeh;
-    if CurrData.PType^.OIP.ci=self.Height then
-                                                begin
-                                                     VertScrollBar.Position:=CurrData.PType^.OIP.barpos;
-                                                end
-                                             else
-                                                 begin
-                                                      VertScrollBar.Position:=0;
-                                                 end;
+  tp:=CurrData.PObj;
+  buildproplist({EDContext.UndoStack,}CurrData.UnitsFormat,CurrData.PType,property_build,tp);
+  contentheigth:=gettreeh;
+  if CurrData.PType^.OIP.ci=self.Height then begin
+    VertScrollBar.Position:=CurrData.PType^.OIP.barpos;
+  end else begin
+    VertScrollBar.Position:=0;
+  end;
 
-    createscrollbars;
-    draw;
+  createscrollbars;
+  draw;
 end;
+
 procedure TGDBobjinsp.setptr(AData:TDisplayedData);
 begin
   //EDContext.UndoStack:=undostack;
-  if (CurrData.PObj<>AData.PObj)or(CurrData.PType<>AData.PType) then
-  begin
+  if (CurrData.PObj<>AData.PObj)or(CurrData.PType<>AData.PType) then begin
     OnMousePP:=nil;
     {Objinsp.}currpd:=nil;
-    if peditor<>nil then
-    begin
-         self.freeeditor;
+    if peditor<>nil then begin
+      self.freeeditor;
     end;
-    if assigned(CurrData.PType) then
-    begin
-    CurrData.PType^.OIP.ci:=self.Height;
-    CurrData.PType^.OIP.barpos:=VertScrollBar.Position;
+    if assigned(CurrData.PType) then begin
+      CurrData.PType^.OIP.ci:=self.Height;
+      CurrData.PType^.OIP.barpos:=VertScrollBar.Position;
     end;
     pda.cleareraseobj;
     CurrData:=AData;
@@ -1800,18 +1740,13 @@ begin
     {GDBobjinsp.}buildproplist({UndoStack,}AData.UnitsFormat,AData.PType,property_build,AData.PObj);
     contentheigth:=gettreeh;
     createscrollbars;
-    if CurrData.PType^.OIP.ci=self.Height then
-                                                begin
-                                                     VertScrollBar.Position:=CurrData.PType^.OIP.barpos;
-                                                end
-                                             else
-                                                 begin
-                                                      VertScrollBar.Position:=0;
-                                                 end;
+    if CurrData.PType^.OIP.ci=self.Height then begin
+      VertScrollBar.Position:=CurrData.PType^.OIP.barpos;
+    end else begin
+      VertScrollBar.Position:=0;
+    end;
 
-  end
-  else
-  begin
+  end else begin
     {GDBobjinsp.}buildproplist({UndoStack,}AData.UnitsFormat,AData.PType,property_correct,AData.PObj);
     contentheigth:=gettreeh;
     createscrollbars;
@@ -1842,19 +1777,20 @@ begin
   if (peditor<>nil)and(EDContext.ppropcurrentedit<>nil) then
     pEditor.SetEditorBounds(EDContext.ppropcurrentedit,OIManager.INTFObjInspShowOnlyHotFastEditors);
 end;
-procedure TGDBobjinsp._onresize(sender:tobject);
+
+procedure TGDBobjinsp._onresize(Sender:TObject);
 //var x,xn:integer;
-   //v:boolean;
+//v:boolean;
 {$IFDEF LCLGTK2}var Widget: PGtkWidget;{$ENDIF}
 begin
   //x:=clientwidth;
   //v:=isVisible;
-     if NameColumnWidthCorrector.LastClientWidth>0 then
-       NameColumnWidth:=round(NameColumnWidthCorrector.LastNameColumnWidth*(clientwidth/NameColumnWidthCorrector.LastClientWidth));
-     if NameColumnWidth>clientwidth-subtab then
-                                       NameColumnWidth:=clientwidth-subtab;
-     if NameColumnWidth<subtab then
-                           NameColumnWidth:=clientwidth div 2;
+  if NameColumnWidthCorrector.LastClientWidth>0 then
+    NameColumnWidth:=round(NameColumnWidthCorrector.LastNameColumnWidth*(clientwidth/NameColumnWidthCorrector.LastClientWidth));
+  if NameColumnWidth>clientwidth-subtab then
+    NameColumnWidth:=clientwidth-subtab;
+  if NameColumnWidth<subtab then
+    NameColumnWidth:=clientwidth div 2;
   {$IFDEF LCLGTK2}
   //Widget:=PGtkWidget(PtrUInt(Handle));
   //gtk_widget_add_events (Widget,GDK_POINTER_MOTION_HINT_MASK);
@@ -1862,10 +1798,12 @@ begin
   createscrollbars;
   updateeditorBounds;
 end;
+
 procedure Register;
 begin
   RegisterComponents('zcadcontrols',[TGDBobjinsp]);
 end;
+
 initialization
   //OIManager.Init;
 finalization

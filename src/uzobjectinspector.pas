@@ -44,12 +44,9 @@ type
   TCBReadOnlyMode=(CBReadOnly,CBEditable,CBDoNotTouch);
   PContent=Pointer;
   PContext=Pointer;
-  //TIsCurrObjInUndoContext=function({_GDBobj:boolean;}_pcurrobj:pointer):boolean;
 
   TEditorContext=record
     ppropcurrentedit:PPropertyDeskriptor;
-    //UndoStack:PTZctnrVectorUndoCommands;
-    //UndoCommand:TTypedChangeCommand;
   end;
 
   TDisplayedData=record
@@ -74,7 +71,6 @@ type
 
   TGDBobjinsp=class(TObjInspCustom)
   protected
-    //DefaultUndoStack:PTZctnrVectorUndoCommands;
     PDA:TPropertyDeskriptorArray;
     contentheigth:integer;
     OLDPP:PPropertyDeskriptor;
@@ -83,56 +79,31 @@ type
 
     function getRowHeight:integer;
   public
-
-    //GDBobj:boolean;
     DefaultData:TDisplayedData;
-    //pdefaultobj:PContent;
-    //defaultobjgdbtype:PUserTypeDescriptor;
-    //pdefaultcontext:PContext;
-    //defaultUnitsFormat:TzeUnitsFormat;
-
     CurrData:TDisplayedData;
-    //CurrPObj:PContent;
-    //CurrObjGDBType:PUserTypeDescriptor;
-    //CurrContext:PContext;
-    //CurrUnitsFormat:TzeUnitsFormat;
-
     StoredData:TDisplayedData;
-    //PStoredObj:PContent;
-    //StoredObjGDBType:PUserTypeDescriptor;
-    //pStoredContext:PContext;
-    //StoredUnitsFormat:TzeUnitsFormat;
-
     NameColumnWidthCorrector:TNameColumnWidthCorrector;
     NameColumnWidth:integer;
     PEditor:TPropEditor;
-
-    //StoredUndoStack:PTZctnrVectorUndoCommands;
-
     EDContext:TEditorContext;
-
-    //_IsCurrObjInUndoContext:TIsCurrObjInUndoContext;
     onGetOtherValues:TOnGetOtherValues;
     onUpdateObjectInInsp:TOnUpdateObjectInInsp;
     onNotify:TOnNotify;
     onAfterFreeEditor:TNotifyEvent;
-
     currpd:PPropertyDeskriptor;
 
-
     property OnContextPopup;
-
 
     procedure draw;virtual;
     procedure mypaint(Sender:TObject);
     procedure drawprop(DefaultDetails:TThemedElementDetails;PPA:PTPropertyDeskriptorArray;arect:trect);
-    procedure InternalDrawprop(DefaultDetails:TThemedElementDetails;PPA:PTPropertyDeskriptorArray;var y,sub:integer;miny:integer;arect:trect;
-      var LastPropAddFreespace:boolean);
+    procedure InternalDrawprop(DefaultDetails:TThemedElementDetails;PPA:PTPropertyDeskriptorArray;
+      var y,sub:integer;miny:integer;arect:trect;var LastPropAddFreespace:boolean);
     procedure calctreeh(PPA:PTPropertyDeskriptorArray;var y:integer);
     function gettreeh:integer;virtual;
     procedure _onresize(Sender:TObject);virtual;
     procedure updateeditorBounds;virtual;
-    procedure buildproplist({const UndoStack:PTZctnrVectorUndoCommands;}const f:TzeUnitsFormat;exttype:PUserTypeDescriptor;bmode:integer;var addr:pointer);
+    procedure buildproplist(const f:TzeUnitsFormat;exttype:PUserTypeDescriptor;bmode:integer;var addr:pointer);
     procedure SetCurrentObjDefault;
     procedure ReturnToDefault;
     procedure rebuild;
@@ -142,7 +113,6 @@ type
     procedure createscrollbars;virtual;
     procedure ScrollBy(DeltaX,DeltaY:integer);override;
     procedure AfterConstruction;override;
-    //procedure CalcRowHeight;
 
     procedure FreeEditor;
     procedure StoreAndFreeEditor;
@@ -152,7 +122,6 @@ type
     function IsMouseOnSpliter(pp:PPropertyDeskriptor;X,Y:integer):boolean;
 
     procedure createeditor(pp:PPropertyDeskriptor);
-    //function IsCurrObjInUndoContext({_GDBobj:boolean;}_pcurrobj:pointer):boolean;
     constructor Create(AOwner:TComponent);override;
 
     function IsHeadersEnabled:boolean;
@@ -220,10 +189,6 @@ begin
     if key=VK_ESCAPE then begin
       setptr(StoredData);
       StoredData.Clear();
-      //PStoredObj:=nil;
-      //StoredObjGDBType:=nil;
-      //pStoredContext:=nil;
-      //StoredUndoStack:=nil;
       key:=0;
       exit;
     end;
@@ -282,33 +247,19 @@ begin
   end else
     Result:=False;
 end;
-(*procedure TGDBobjinsp.CalcRowHeight;
-begin
-  rowh:=OIManager.RowHeightOverride.ValueOrDefault(OIManager.DefaultRowHeight);
-  {rowh:=OIManager.DefaultRowHeight;
-  if OIManager.RowHeightOverride.Usable then
-    if OIManager.RowHeightOverride.Value>0 then
-      rowh:=OIManager.RowHeightOverride.Value;}
-end;*)
 
 procedure TGDBobjinsp.AfterConstruction;
 begin
   inherited;
-  //rowh:=21;
-  //spaceh:=5;
-  //CalcRowHeight;
 
   onresize:=_onresize;
-  //onhide:=FormHide;
   onpaint:=mypaint;
   self.DoubleBuffered:=True;
   self.BorderStyle:=bsnone;
   self.BorderWidth:=0;
 
   CurrData.CreateRec(nil,nil,nil,CreateDefaultUnitsFormat);
-  //CurrPObj:=nil;
   peditor:=nil;
-  //CurrObjGDBType:=nil;
   createpda;
   EDContext.ppropcurrentedit:=nil;
 
@@ -321,11 +272,6 @@ end;
 procedure TGDBobjinsp.SetCurrentObjDefault;
 begin
   DefaultData:=CurrData;
-  //pdefaultobj:=CurrPObj;
-  //defaultobjgdbtype:=CurrObjGDBType;
-  //pdefaultcontext:=CurrContext;
-  //defaultUnitsFormat:=CurrUnitsFormat;
-  //DefaultUndoStack:=EDContext.UndoStack;
 end;
 
 procedure TGDBobjinsp.ReturnToDefault;
@@ -426,9 +372,6 @@ end;
 
 procedure drawfasteditors(ppd:PPropertyDeskriptor;canvas:tcanvas;var r:trect);
 var
-  //fer:trect;
-  //FESize:TSize;
-  //temp:integer;
   i:integer;
 begin
   if assigned(ppd.FastEditors) then
@@ -469,26 +412,11 @@ begin
     DrawTreeIcon({Canvas,}r.left,r.top+temp,not ppd^.Collapsed^,onm);
   Inc(r.left,size.cx+1);
   clearRTd(ppd.FastEditors);
-  //ppd.FastEditorDrawed:=false;
   if NeedDrawFasteditor(onm) then
     if assigned(ppd.FastEditors) then
       drawfasteditors(ppd,canvas,r);
-  {canvas.Font.Italic:=true;
-  if onm then
-             begin
-             //canvas.Font.Bold:=true;
-             canvas.Font.Underline:=true;
-             end;}
   if (r.Right-r.Left)>1 then
     ThemeServices.DrawText(Canvas,TextDetails,Name,r,DT_END_ELLIPSIS or DT_NOPREFIX,0);
-  {//canvas.TextRect(r,r.Left,r.Top,(name));
-  canvas.Font.Italic:=false;
-  if onm then
-             begin
-             //canvas.Font.Bold:=false;
-             canvas.Font.Underline:=false;
-             end;
-  dec(r.left,size.cx+1);}
 end;
 
 function DrawRect(DefaultDetails:TThemedElementDetails;ACanvas:TCanvas;ARect:TRect;AActive:boolean;AOnMouse:boolean;
@@ -496,7 +424,6 @@ function DrawRect(DefaultDetails:TThemedElementDetails;ACanvas:TCanvas;ARect:TRe
 var
   tc:tcolor;
 begin
-  //AWithChildren:=false;
   Result:=defaultdetails;
   if (not ThemeServices.ThemesAvailable)or isOldStyleDraw then begin
     if AOnMouse and ThemeServices.ThemesAvailable then
@@ -550,10 +477,8 @@ begin
       ThemeServices.DrawElement(ACanvas.Handle,Result,ARect,nil);
      {$ENDIF}
     end else begin
-                     {if assigned(sysvar.INTF.INTF_ShowLinesInObjInsp) then
-                     if sysvar.INTF.INTF_ShowLinesInObjInsp^ then}
       if isOldStyleDraw then begin
-        Result:= {ThemeServices.GetElementDetails(ttItemNormal)}DefaultDetails;
+        Result:=DefaultDetails;
         ThemeServices.DrawElement(ACanvas.Handle,Result,ARect,nil);
       end;
     end;
@@ -569,23 +494,10 @@ begin
   end;
 end;
 
-procedure drawstring(cnvs:tcanvas;r:trect;{L,T:integer;}s:string;TextDetails:TThemedElementDetails);
-{const
-  maxsize=200;
-var
-   s2:string;}
+procedure drawstring(cnvs:tcanvas;r:trect;s:string;TextDetails:TThemedElementDetails);
 begin
   if (r.Right-r.Left)>1 then
     ThemeServices.DrawText(cnvs,TextDetails,s,r,DT_END_ELLIPSIS or DT_SINGLELINE or DT_NOPREFIX,0);
-     {if length(s)<maxsize then
-                          //cnvs.TextRect(r,L,T,s)
-                          ThemeServices.DrawText(cnvs,TextDetails,s,r,DT_END_ELLIPSIS,0)
-                      else
-                          begin
-                               s2:=copy(s,1,maxsize)+'...';
-                               //cnvs.TextRect(r,L,T,s2);
-                               ThemeServices.DrawText(cnvs,TextDetails,s2,r,DT_END_ELLIPSIS,0);
-                          end;}
 end;
 
 procedure drawvalue(DefaultDetails:TThemedElementDetails;ppd:PPropertyDeskriptor;canvas:tcanvas;
@@ -611,7 +523,6 @@ begin
   r.Right:=r.Right-1;
   if fldaReadOnly in ppd^.Attr then begin
     tempcolor:=canvas.Font.Color;
-    //canvas.Font.Color:=clGrayText;
     if fldaColored1 in ppd^.Attr then begin
       canvas.Font.StrikeThrough:=True;
     end;
@@ -619,11 +530,10 @@ begin
       if (assigned(ppd.Decorators.OnDrawProperty) and(ppd^.valueAddres<>nil)and(not(fldaDifferent in ppd^.Attr))) then
         ppd.Decorators.OnDrawProperty(canvas,r,ppd^.valueAddres)
       else
-        drawstring(canvas,r,{r.Left,r.Top,}(Value),DefaultDetails);
+        drawstring(canvas,r,Value,DefaultDetails);
     canvas.Font.Color:=tempcolor;
   end else begin
     clearRTd(ppd.FastEditors);
-    //ppd.FastEditorDrawed:=false;
     if NeedDrawFasteditor(onm) then
       drawfasteditors(ppd,canvas,r);
     if fldaColored1 in ppd^.Attr then begin
@@ -633,7 +543,7 @@ begin
       if (assigned(ppd.Decorators.OnDrawProperty) and(ppd^.valueAddres<>nil)and(not(fldaDifferent in ppd^.Attr))) then
         ppd.Decorators.OnDrawProperty(canvas,r,ppd^.valueAddres)
       else
-        drawstring(canvas,r,{r.Left,r.Top,}(Value),DefaultDetails);
+        drawstring(canvas,r,Value,DefaultDetails);
   end;
 
   if fldaHidden in ppd^.Attr then begin
@@ -701,7 +611,6 @@ begin
                 if not NeedShowSeparator then
                   r.Right:=arect.Right-1;
                 TextDetails:=DrawRect(DefaultDetails,canvas,r,False,OnMouseProp,(fldaReadOnly in ppd^.Attr),{true}sub=0);
-                //r.Left:={r.Left+3}arect.Left+5+subtab*sub;
                 r.Left:=arect.Left+{2+}(subtab+GetSizeTreeIcon(not ppd^.Collapsed^,False).cx)*sub;
                 r.Top:=r.Top+3;
                 if fldaReadOnly in ppd^.Attr then begin
@@ -732,40 +641,18 @@ begin
               end;
               r.Left:=r.Left+2;
               r.Top:=r.Top+3;
-              //if (fldaReadOnly in ppd^.Attr)or(fldaHidden in ppd^.Attr) then
               if [fldaReadOnly,fldaHidden]*ppd^.Attr<>[] then begin
                 tempcolor:=canvas.Font.Color;
                 TextStyle:=canvas.TextStyle;
                 TextStyle.EndEllipsis:=True;
                 TextStyle.WordBreak:=False;
                 canvas.Font.Color:=clGrayText;
-                //DrawText(canvas.Handle, @ppd^.Name[1],length(ppd^.Name),R,DT_END_ELLIPSIS);
                 if (r.Right-r.Left)>1 then
                   canvas.TextRect(r,r.Left,r.Top,ppd^.Name,TextStyle);
                 canvas.Font.Color:=tempcolor;
               end else begin
-                   {if OnMouseProp then
-                                      begin
-                                      //canvas.Font.bold:=true;
-                                      canvas.Font.underline:=true;
-                                      end;
-                   if (ppd=EDContext.ppropcurrentedit) then
-                                      begin
-                                           tempcolor:=canvas.Font.Color;
-                                           canvas.Font.Color:=clHighlightText;
-                                      end;}
-                //canvas.TextRect(r,r.Left,r.Top,(ppd^.Name));
                 if (r.Right-r.Left)>1 then
                   ThemeServices.DrawText(Canvas,TextDetails,ppd^.Name,r,DT_END_ELLIPSIS or DT_NOPREFIX,0);
-                   {if OnMouseProp then
-                                      begin
-                                      //canvas.Font.bold:=false;
-                                      canvas.Font.underline:=false;
-                                      end;
-                   if (ppd=EDContext.ppropcurrentedit) then
-                                      begin
-                                           canvas.Font.Color:=tempcolor;
-                                      end;}
               end;
               r.Top:=r.Top-3;
               if NeedShowSeparator then
@@ -776,13 +663,7 @@ begin
 
               ppd.rect:=r;
               drawvalue(DefaultDetails,ppd,canvas,True,TextDetails,onmouseprop,sub=0);
-
-          {if (ppd^.Attr and fldaHidden)<>0 then
-          begin
-                canvas.Font.Italic:=false;
-          end;}
             end;
-
             y:=y++rowh;
           end;
         end;
@@ -802,47 +683,9 @@ begin
   Result:=0;
   calctreeh(@pda,Result);
 end;
-{procedure TGDBobjinsp.WMVScroll(var Message : TLMVScroll);
-var
-  NewPos: Longint;
-begin
-  if VertScrollbar.IsScrollBarVisible then
-  case Message.ScrollCode of
-    SB_THUMBPOSITION:
-      begin
-        NewPos := VertScrollbar.Position;
-        NewPos := NewPos + sign(Message.Pos - NewPos) * VertScrollbar.page div 3;
-        if NewPos < 0 then
-          NewPos := 0;
-        if NewPos > VertScrollbar.Range then
-          NewPos := VertScrollbar.Range;
-        VertScrollbar.Position:= NewPos;
-        exit;
-      end;
-  end;
-  inherited;
-end;}
-{procedure TGDBobjinsp.ScrollbarHandler(ScrollKind: TScrollBarKind; OldPosition: Integer);
-var
-  ty:integer;
-begin
-    if peditor<>nil then
-    begin
-       if (EDContext.ppropcurrentedit.rect.Top<HeadersHeight+VertScrollBar.ScrollPos-1)
-       or (EDContext.ppropcurrentedit.rect.Top>clientheight+VertScrollBar.ScrollPos-1)then
-       begin
-          Application.QueueAsyncCall(AsyncFreeEditor,0);
-          peditor.geteditor.Hide;
-       end;
-    end;
-     ty:=OldPosition;
-     invalidate;
-     inherited;
-     ty:=VertScrollBar.ScrollPos;
-end;}
+
 procedure TGDBobjinsp.mypaint;
 begin
-  //inherited;
   draw;
 end;
 
@@ -850,23 +693,27 @@ procedure TGDBobjinsp.draw;
 var
   arect,hrect:trect;
   tc:tcolor;
-  {ts:TTextStyle;}
   vDefaultDetails:TThemedElementDetails;
 begin
-  //CalcRowHeight;
   ARect:=GetClientRect;
   InflateRect(ARect,-BorderWidth,-BorderWidth);
   ARect.Top:=ARect.Top+VertScrollBar.ScrollPos;
   ARect.Bottom:=ARect.Bottom+VertScrollBar.ScrollPos;
-  {$IFDEF LCLWIN32}
-if WindowsVersion < wvVista then
-                                vDefaultDetails := ThemeServices.GetElementDetails(tbPushButtonNormal)
-                            else
-                                vDefaultDetails := ThemeServices.GetElementDetails(tmPopupCheckBackgroundDisabled){trChevronVertHot}{ttbThumbDisabled}{tlListViewRoot};
-  {$endif}
-  {$IFDEF LCLGTK2}vDefaultDetails := ThemeServices.GetElementDetails(ttbody){$endif}
-  {$IFDEF LCLQT}vDefaultDetails := ThemeServices.GetElementDetails({ttpane}thHeaderDontCare){$endif};
-  {$IFDEF LCLQT5}vDefaultDetails := ThemeServices.GetElementDetails(ttPane){$endif};
+ {$IFDEF LCLWIN32}
+  if WindowsVersion < wvVista then
+    vDefaultDetails := ThemeServices.GetElementDetails(tbPushButtonNormal)
+  else
+    vDefaultDetails := ThemeServices.GetElementDetails(tmPopupCheckBackgroundDisabled){trChevronVertHot}{ttbThumbDisabled}{tlListViewRoot};
+ {$endif}
+ {$IFDEF LCLGTK2}
+  vDefaultDetails := ThemeServices.GetElementDetails(ttbody)
+ {$endif}
+ {$IFDEF LCLQT}
+  bvDefaultDetails := ThemeServices.GetElementDetails({ttpane}thHeaderDontCare)
+ {$endif};
+ {$IFDEF LCLQT5}
+  vDefaultDetails := ThemeServices.GetElementDetails(ttPane)
+ {$endif};
   if IsWgiteBackground then
     Canvas.FillRect(ARect)
   else begin
@@ -878,10 +725,6 @@ if WindowsVersion < wvVista then
     end else
       ThemeServices.DrawElement(Canvas.Handle,vDefaultDetails,ARect,nil);
   end;
-
-{ts:=canvas.TextStyle;
-ts.Alignment:=taCenter;
-ts.Layout:=tlCenter;}
 
   hrect:=ARect;
  {$IFDEF LCLWIN32}
@@ -1019,14 +862,10 @@ end;
 procedure TGDBobjinsp.ClearEDContext;
 begin
   EDContext.ppropcurrentedit:=nil;
-  //EDContext.UndoCommand:=nil;
-  //EDContext.UndoStack:=nil;
 end;
 
 procedure TGDBobjinsp.FreeEditor;
 begin
-  //if EDContext.UndoCommand<>nil then
-  //                                  EDContext.UndoStack.KillLastCommand;
   ClearEDContext;
   if peditor<>nil then begin
     peditor.geteditor.OnExit:=nil;
@@ -1072,16 +911,6 @@ begin
     saveppropcurrentedit:=EDContext.ppropcurrentedit;
     if assigned(onNotify) then
       onNotify(CurrData.Ctx);
-
-    {if EDContext.UndoCommand<>nil then
-                                      begin
-                                           if peditor.changed then
-                                                                  EDContext.UndoCommand.ComitFromObj
-                                                              else
-                                                                  EDContext.UndoStack.KillLastCommand;
-                                           ClearEDContext;
-                                      end;}
-
     pld:=peditor.PInstance;
 
     if (Command=TMNC_RunFastEditor) then
@@ -1139,8 +968,6 @@ begin
   ScrollWindowEx(Handle, DeltaX, DeltaY, nil, {nil}@r, 0, nil, {SW_INVALIDATE or SW_ERASE}SW_SCROLLCHILDREN);
   {$ENDIF}
   if peditor<>nil then begin
-    //peditor.geteditor.SetBounds(NameColumnWidth+1,EDContext.ppropcurrentedit.rect.Top+DeltaY,clientwidth-NameColumnWidth-2,EDContext.ppropcurrentedit.rect.Bottom-EDContext.ppropcurrentedit.rect.Top+1);
-    //peditor.geteditor.Invalidate;
     if (EDContext.ppropcurrentedit.rect.Top<HeadersHeight+VertScrollBar.ScrollPos-1)  or
       (EDContext.ppropcurrentedit.rect.Top>clientheight+VertScrollBar.ScrollPos-1) then begin
       Application.QueueAsyncCall(AsyncFreeEditor,0);
@@ -1153,25 +980,23 @@ end;
 
 procedure TGDBobjinsp.createscrollbars;
 var
-  //changed:boolean;
   ch:integer;
 begin
-
   //ебаный скролинг работает везде по разному, или я туплю... переписывать надо эту хрень
   ch:=contentheigth+HeadersHeight;
-     {if (VertScrollBar.Range=ch)or(VertScrollBar.Position=0) then
-                                              changed:=false
-                                          else
-                                              changed:=true;}
+  {if (VertScrollBar.Range=ch)or(VertScrollBar.Position=0) then
+    changed:=false
+   else
+    changed:=true;}
   self.VertScrollBar.Range:=ch;
   self.VertScrollBar.page:=Height;
   self.VertScrollBar.Tracking:=True;
   self.VertScrollBar.Smooth:=True;
   self.VertScrollBar.Increment:=200;
   if ch<Height then begin
-    {$IFNDEF LCLQt}
+   {$IFNDEF LCLQt}
     //ScrollBy(0,-VertScrollBar.Position);
-    {$ENDIF}
+   {$ENDIF}
     VertScrollBar.Position:=0;
     self.VertScrollBar.page:=Height;
     self.VertScrollBar.Range:=Height;
@@ -1206,7 +1031,6 @@ procedure TGDBobjinsp.MouseLeave;
 begin
   if OnMousePP<>nil then begin
     clearRTstate(OnMousePP.FastEditors);
-    //OnMousePP.FastEditorState:=TFES_Default;
     OnMousePP:=nil;
     invalidate;
   end;
@@ -1214,15 +1038,11 @@ begin
 end;
 
 procedure TGDBobjinsp.MouseMove(Shift:TShiftState;X,Y:integer);
-//procedure TGDBobjinsp.Pre_MouseMove(fwkeys:longint; x,y:SmallInt; var r:HandledMsg);
 var
   my:integer;
   pp:PPropertyDeskriptor;
-  //  tb:boolean;
-  //  pb:Pboolean;
   tp:pointer;
   tempstr:string;
-  //FESize:TSize;
   needredraw:boolean;
   i:integer;
   currstate:TFastEditorState;
@@ -1253,15 +1073,12 @@ begin
     exit;
   end;
   y:=y+VertScrollBar.scrollpos-self.BorderWidth;
-  //application.HintPause:=1;
-  //application.HintShortPause:=10;
   my:=HeadersHeight;
   pp:=mousetoprop(rowh,@pda,x,y,my);
   if OnMousePP<>pp then begin
     needredraw:=True;
     if OnMousePP<>nil then
       clearRTstate(OnMousePP.FastEditors);
-    //OnMousePP.FastEditorState:=TFES_Default;
     OnMousePP:=pp;
   end;
   if IsMouseOnSpliter(pp,X,Y) then
@@ -1297,46 +1114,18 @@ begin
   if oldpp<>pp then begin
     if oldpp<>nil then begin
       clearRTstate(oldpp.FastEditors);
-      //oldpp.FastEditorState:=TFES_Default;
-      //drawvalue(oldpp,canvas,false);
       needredraw:=True;
     end;
-(*  TI.cbSize := SizeOf(TOOLINFO);
-  TI.uFlags := TTF_SUBCLASS;
-  TI.uId := 0;
-  TI.hwnd := Handle;
-  TI.lpszText:=nil;
-  SendMessage(MainFormN.hToolTip, {TTM_GETTOOLINFO}TTM_DELTOOL, 0, LPARAM(@ti));
-
-  TI.cbSize := SizeOf(TOOLINFO);
-  TI.uFlags := TTF_SUBCLASS;
-  TI.uId := 0;
-  TI.hwnd := Handle;
-  tempstr:=pp^.Name;
-  if pp^.ValKey<>'' then
-                       tempstr:=tempstr+'   '+pp^.ValKey+':'+pp^.ValType;
-  if pp^.Value<>'' then
-                       tempstr:=tempstr+':='+pp^.Value;
-  TI.lpszText := @tempstr[1];
-  TI.Rect.Left:=pp^.x1;
-  TI.Rect.Top:=pp^.y1;
-  TI.Rect.Right:=pp^.x2;
-  TI.Rect.Bottom:=pp^.y2;
-  Windows.GetClientRect(Handle, TI.Rect);*)
     Application.CancelHint;
     tempstr:=pp^.Name;
     if pp^.ValKey<>'' then
       tempstr:=tempstr+'   '+pp^.ValKey+':'+pp^.ValType;
     if pp^.Value<>'' then
       tempstr:=tempstr+':='+pp^.Value;
-    //tempstr:=ReplaceStr(tempstr,'|',';');
     self.Hint:=tempstr;
     self.ShowHint:=True;
-
-    //SendMessage(MainFormN.hToolTip, TTM_ADDTOOL, 0, LPARAM(@ti));
   end else
     Application.ActivateHint(ClientToScreen(Point(X,Y)));
-
 
   if needredraw then
     invalidate;
@@ -1350,9 +1139,7 @@ begin
   if pp^.PTypeManager<>nil then begin
     if peditor<>nil then begin
       tp:=CurrData.PObj;
-      buildproplist({EDContext.UndoStack,}CurrData.UnitsFormat,CurrData.PType,property_correct,tp);
-      //peditor^.done;
-      //Freemem(pointer(peditor));
+      buildproplist(CurrData.UnitsFormat,CurrData.PType,property_correct,tp);
       EDContext.ppropcurrentedit:=pp;
     end;
     PEditor:=pp^.PTypeManager^.CreateEditor(@self,pp.rect,pp^.valueAddres,nil,False,'этого не должно тут быть',
@@ -1362,17 +1149,14 @@ begin
     end;
   end;
 end;
-//procedure TGDBobjinsp.pre_mousedown;
+
 procedure TGDBobjinsp.MouseUp(Button:TMouseButton;Shift:TShiftState;X,Y:integer);
 var
   pp:PPropertyDeskriptor;
   my:integer;
-  //FESize:TSize;
   i:integer;
   needexit:boolean;
-  //rowh:integer;
 begin
-  //rowh:=OIManager.RowHeightOverride.ValueOrDefault(OIManager.DefaultRowHeight);
   inherited;
   if (button=mbLeft)  and (mresplit=True) then begin
     mresplit:=False;
@@ -1404,7 +1188,6 @@ begin
               if assigned(pp.FastEditors[i].Procs.OnRunFastEditor) then begin
                 StoreAndFreeEditor;;
                 EDContext.ppropcurrentedit:=pp;
-                //pp.FastEditor.OnRunFastEditor(pp.valueAddres)
                 if pp.FastEditors[i].Procs.UndoInsideFastEditor then begin
                   pp.FastEditors[i].Procs.OnRunFastEditor(pp.valueAddres);
                   needexit:=True;
@@ -1433,60 +1216,11 @@ begin
                 system.break;
             end;
     end;
-
-                                 (*-----if assigned(pp.FastEditor.OnGetPrefferedFastEditorSize) then
-                                 begin
-                                 fesize:=pp.FastEditor.OnGetPrefferedFastEditorSize(pp.valueAddres);
-                                 if (fesize.cx>0)and((pp.rect.Right-x-fastEditorOffset-1)<=fesize.cx) then
-                                 if pp.FastEditorState=TFES_Pressed then
-                                                                                      begin
-                                                                                           pp.FastEditorState:=TFES_Default;
-                                                                                           if assigned(pp.FastEditor.OnRunFastEditor)then
-                                                                                           begin
-                                                                                           StoreAndFreeEditor;;
-                                                                                           EDContext.ppropcurrentedit:=pp;
-                                                                                           //pp.FastEditor.OnRunFastEditor(pp.valueAddres)
-                                                                                           if pp.FastEditor.UndoInsideFastEditor then
-                                                                                                                                     pp.FastEditor.OnRunFastEditor(pp.valueAddres)
-                                                                                                                                 else
-                                                                                                                                     begin
-                                                                                                                                     if IsCurrObjInUndoContext(GDBobj,CurrPObj) then
-                                                                                                                                     begin
-                                                                                                                                     //EDContext.UndoStack:=GetUndoStack;
-                                                                                                                                     EDContext.UndoCommand:=EDContext.UndoStack.PushCreateTTypedChangeCommand(pp^.valueAddres,pp^.PTypeManager);
-                                                                                                                                     EDContext.UndoCommand.PDataOwner:=CurrPObj;
-
-                                                                                                                                     pp.FastEditor.OnRunFastEditor(pp.valueAddres);
-                                                                                                                                     EDContext.UndoCommand.ComitFromObj;
-
-                                                                                                                                     //EDContext.UndoStack:=nil;
-                                                                                                                                     EDContext.UndoCommand:=nil;
-                                                                                                                                     end
-                                                                                                                                     else
-                                                                                                                                         begin
-                                                                                                                                         pp.FastEditor.OnRunFastEditor(pp.valueAddres);
-                                                                                                                                         end;
-                                                                                                                                     end;
-                                                                                           end;
-                                                                                           UpdateObjectInInsp;
-                                                                                           EDContext.ppropcurrentedit:=nil;
-                                                                                           invalidate;
-                                                                                      end
-                            end;*)
   end;
-
 end;
-(*function TGDBobjinsp.IsCurrObjInUndoContext;
-begin
-  if assigned(_IsCurrObjInUndoContext) then
-    result:=_IsCurrObjInUndoContext({_GDBobj,}_pcurrobj)
-  else
-    result:=false;
-end;*)
 constructor TGDBobjinsp.Create(AOwner:TComponent);
 begin
   inherited;
-  //_IsCurrObjInUndoContext:=nil;
 end;
 
 procedure TGDBobjinsp.createeditor(pp:PPropertyDeskriptor);
@@ -1504,15 +1238,13 @@ begin
       pbyte(pp^.Collapsed)^:=1;
     pp^.Collapsed^:=not(pp^.Collapsed^);
     updateinsp;
-    //draw;
-    //exit;
   end else begin
     if fldaReadOnly in pp^.Attr then
       exit;
     if pp^.PTypeManager<>nil then begin
       if peditor<>nil then begin
         tp:=CurrData.PObj;
-        {GDBobjinsp.}buildproplist({EDContext.UndoStack,}CurrData.UnitsFormat,CurrData.PType,property_correct,tp);
+        buildproplist(CurrData.UnitsFormat,CurrData.PType,property_correct,tp);
         StoreAndFreeEditor;
       end;
       vsa.init(50);
@@ -1530,20 +1262,18 @@ begin
           TED:=
             pp^.Decorators.OnCreateEditor(self,tr,pp^.valueAddres,@vsa,False,pp^.PTypeManager,CurrData.UnitsFormat)
         else
-          TED:=pp^.PTypeManager^.CreateEditor(self,tr,pp^.valueAddres,@vsa,
-            {false}True,initialvalue,getRowHeight,CurrData.UnitsFormat);
+          TED:=pp^.PTypeManager^.CreateEditor(self,tr,pp^.valueAddres,@vsa,{false}True,initialvalue,
+            getRowHeight,CurrData.UnitsFormat);
         case ted.Mode of
           TEM_Integrate:begin
             TED.Editor.SetEditorBounds(pp,OIManager.INTFObjInspShowOnlyHotFastEditors);
             editorcontrol:=TED.Editor.geteditor;
-            //editorcontrol.SetBounds(tr.Left+2,tr.Top,tr.Right-tr.Left-2,tr.Bottom-tr.Top);
             if (editorcontrol is TComboBox) then begin
-              {$IFNDEF LCLWIN32}
+             {$IFNDEF LCLWIN32}
               editorcontrol.Visible:=False;
-              {$ENDIF}
+             {$ENDIF}
               editorcontrol.Parent:=self;
               SetComboSize(editorcontrol as TCombobox,getRowHeight-6,CBDoNotTouch);
-              //(editorcontrol as TCombobox).itemheight:=pp^.rect.Bottom-pp^.rect.Top-6;
               if (editorcontrol as TCombobox).Style in [csDropDownList,csOwnerDrawFixed,csOwnerDrawVariable] then
                 (editorcontrol as TCombobox).droppeddown:=True;
               //автооткрытие комбика мещает вводу, открываем только те что без возможности ввода значений
@@ -1560,24 +1290,11 @@ begin
         end;
       end;
       vsa.done;
-      if assigned(PEditor){<>nil} then begin
-        //GetUndoStack;
+      if assigned(PEditor) then begin
         EDContext.ppropcurrentedit:=pp;
-        //EDContext.UndoStack:=GetUndoStack;
-
-        //if (*IsCurrObjInUndoContext({GDBobj,}CurrPObj)*)false then
-        //if EDContext.UndoStack<>nil then
-        //begin
-        //     EDContext.UndoCommand:=EDContext.UndoStack.PushCreateTTypedChangeCommand(EDContext.ppropcurrentedit^.valueAddres,EDContext.ppropcurrentedit^.PTypeManager);
-        //     EDContext.UndoCommand.PDataOwner:=CurrPObj;
-        //end;
-
         peditor.OwnerNotify:=self.Notify;
         if peditor.geteditor.Visible then
           peditor.geteditor.SetFocus;
-        //PEditor^.SetFocus;
-        //PEditor^.show;
-        //PEditor^.SetFocus;
       end;
     end;
   end;
@@ -1587,8 +1304,6 @@ procedure TGDBobjinsp.MouseDown(Button:TMouseButton;Shift:TShiftState;X,Y:intege
 var
   my:integer;
   pp:PPropertyDeskriptor;
-  //menu:TPopupMenu;
-  //fesize:tsize;
   clickonheader:boolean;
   i,Count:integer;
   handled:boolean;
@@ -1605,7 +1320,6 @@ begin
   end else
     clickonheader:=False;
   y:=y+VertScrollBar.scrollpos-self.BorderWidth;
-  //if proptreeptr=nil then exit;
   my:=HeadersHeight;
   pp:=mousetoprop(getRowHeight,@pda,x,y,my);
 
@@ -1629,58 +1343,22 @@ begin
           createeditor(pp);
       end else
         createeditor(pp);
-                                  (*if assigned(pp.FastEditor.OnGetPrefferedFastEditorSize)and(pp.FastEditorDrawed) then
-                                  begin
-                                  fesize:=pp.FastEditor.OnGetPrefferedFastEditorSize(pp.valueAddres);
-                                  if (fesize.cx>0)and((pp.rect.Right-x-fastEditorOffset-1)<=fesize.cx) then
-                                                                                       begin
-                                                                                            pp.FastEditorState:=TFES_Pressed;
-                                                                                            {pp.FastEditor.OnRunFastEditor(pp.valueAddres);
-                                                                                            if GDBobj then
-                                                                                            if PGD--BaseObject(CurrPObj)^.IsEntity then
-                                                                                                                                PGDBObjEntity(CurrPObj)^.FormatEntity(PTDrawingDef(CurrContext)^);
-                                                                                            if assigned(resetoglwndproc) then resetoglwndproc;
-                                                                                            if assigned(redrawoglwndproc) then redrawoglwndproc;
-                                                                                            self.updateinsp;
-                                                                                            if assigned(UpdateVisibleProc) then UpdateVisibleProc;}
-                                                                                       end
-                                                                                 else
-                                                                                     createeditor(pp)
-                                  end
-                                     else
-                                         createeditor(pp)*)
     end;
   end else begin
     begin
       currpd:=pp;
       if assigned(OnContextPopup) then
         OnContextPopup(self,point(X,Y),handled);
-                                   (*menu:=nil;
-                                   if (clickonheader)or(pp=nil) then
-                                   menu:=TPopupMenu(application.FindComponent({MenuNameModifier}'MENU_'+'OBJINSPHEADERCXMENU'))
-                              else if pp^.valkey<>''then
-                                   menu:=TPopupMenu(application.FindComponent({MenuNameModifier}'MENU_'+'OBJINSPVARCXMENU'))
-                              else if pp^.Value<>''then
-                                   menu:=TPopupMenu(application.FindComponent({MenuNameModifier}'MENU_'+'OBJINSPCXMENU'))
-                              else
-                                   menu:=TPopupMenu(application.FindComponent({MenuNameModifier}'MENU_'+'OBJINSPHEADERCXMENU'));
-                                   if menu<>nil then
-                                   begin
-                                   currpd:=pp;
-                                   menu.PopUp;
-                                   end;*)
     end;
   end;
 
   contentheigth:=gettreeh;
   createscrollbars;
   self.Invalidate;
-  //draw;
 end;
 
 procedure TGDBobjinsp.updateinsp;
 begin
-  //exit;
   setptr(CurrData);
   updateeditorBounds;
 end;
@@ -1694,14 +1372,8 @@ begin
   if peditor<>nil then begin
     //--MultiSelectEditor not work with this self.freeeditor;
   end;
-  //CurrObjGDBType:=exttype;
-  //CurrPObj:=addr;
-    {if (CurrObjGDBType.GetTypeAttributes and TA_OBJECT)<>0 then
-      GDBobj:=true
-    else
-      GDBobj:=false;}
   tp:=CurrData.PObj;
-  buildproplist({EDContext.UndoStack,}CurrData.UnitsFormat,CurrData.PType,property_build,tp);
+  buildproplist(CurrData.UnitsFormat,CurrData.PType,property_build,tp);
   contentheigth:=gettreeh;
   if CurrData.PType^.OIP.ci=self.Height then begin
     VertScrollBar.Position:=CurrData.PType^.OIP.barpos;
@@ -1715,10 +1387,9 @@ end;
 
 procedure TGDBobjinsp.setptr(AData:TDisplayedData);
 begin
-  //EDContext.UndoStack:=undostack;
   if (CurrData.PObj<>AData.PObj)or(CurrData.PType<>AData.PType) then begin
     OnMousePP:=nil;
-    {Objinsp.}currpd:=nil;
+    currpd:=nil;
     if peditor<>nil then begin
       self.freeeditor;
     end;
@@ -1728,16 +1399,8 @@ begin
     end;
     pda.cleareraseobj;
     CurrData:=AData;
-    //CurrData.PType:=exttype;
-    //CurrData.PObj:=addr;
-    //CurrData.Ctx:=context;
-    //CurrData.UnitsFormat:=f;
     oldpp:=nil;
-    {if (exttype.GetTypeAttributes and TA_OBJECT)<>0 then
-      GDBobj:=true
-    else
-      GDBobj:=false;}
-    {GDBobjinsp.}buildproplist({UndoStack,}AData.UnitsFormat,AData.PType,property_build,AData.PObj);
+    buildproplist(AData.UnitsFormat,AData.PType,property_build,AData.PObj);
     contentheigth:=gettreeh;
     createscrollbars;
     if CurrData.PType^.OIP.ci=self.Height then begin
@@ -1747,31 +1410,13 @@ begin
     end;
 
   end else begin
-    {GDBobjinsp.}buildproplist({UndoStack,}AData.UnitsFormat,AData.PType,property_correct,AData.PObj);
+    buildproplist(AData.UnitsFormat,AData.PType,property_correct,AData.PObj);
     contentheigth:=gettreeh;
     createscrollbars;
   end;
-  //draw;
-  self.Refresh;
-  //self.Invalidate;
-  //self.update;
+  Refresh;
 end;
 
-{procedure TGDBobjinsp.beforeinit;
-begin
-
-  PStoredObj:=nil;
-  StoredObjGDBType:=nil;
-
-  CurrPObj:=nil;
-  peditor:=nil;
-  EDContext.ppropcurrentedit:=nil;
-
-  MResplit:=false;
-  NameColumnWidth:=50;
-  NameColumnWidthCorrector.LastNameColumnWidth:=NameColumnWidth;
-  NameColumnWidthCorrector.LastClientWidth:=clientwidth;
-end;}
 procedure TGDBobjinsp.updateeditorBounds;
 begin
   if (peditor<>nil)and(EDContext.ppropcurrentedit<>nil) then
@@ -1779,12 +1424,10 @@ begin
 end;
 
 procedure TGDBobjinsp._onresize(Sender:TObject);
-//var x,xn:integer;
-//v:boolean;
-{$IFDEF LCLGTK2}var Widget: PGtkWidget;{$ENDIF}
+ {$IFDEF LCLGTK2}
+  var Widget: PGtkWidget;
+ {$ENDIF}
 begin
-  //x:=clientwidth;
-  //v:=isVisible;
   if NameColumnWidthCorrector.LastClientWidth>0 then
     NameColumnWidth:=round(NameColumnWidthCorrector.LastNameColumnWidth*(clientwidth/NameColumnWidthCorrector.LastClientWidth));
   if NameColumnWidth>clientwidth-subtab then

@@ -98,7 +98,7 @@ begin
   AddEditorToType('Double',TBaseTypesEditors.BaseCreateEditor);//register standart editor to double type
   AddEditorToType('String',TBaseTypesEditors.BaseCreateEditor);//register standart editor to string type
   EnumGlobalEditor:=TBaseTypesEditors.EnumDescriptorCreateEditor;//register standart editor to all enum types
-  GDBobjinsp1.setptr(TDisplayedData.CreateRec(@data,RunTimeUnit^.TypeName2PTD('TData1'),nil,UnitsFormat));//show data variable in inspector
+  GDBobjinsp1.setDisplayedData(TDisplayedData.CreateRec(@data,RunTimeUnit^.TypeName2PTD('TData1'),nil,UnitsFormat));//show data variable in inspector
 end;
 
 procedure TForm1.RandomizeData(Sender: TObject);
@@ -116,12 +116,12 @@ end;
 
 procedure TForm1.SwithToData(Sender: TObject);
 begin
-   GDBobjinsp1.setptr(TDisplayedData.CreateRec(@data,RunTimeUnit^.TypeName2PTD('TData1'),nil,UnitsFormat));//show data variable in inspector
+   GDBobjinsp1.setDisplayedData(TDisplayedData.CreateRec(@data,RunTimeUnit^.TypeName2PTD('TData1'),nil,UnitsFormat));//show data variable in inspector
 end;
 
 procedure TForm1.SwithToOtherData(Sender: TObject);
 begin
-  GDBobjinsp1.setptr(TDisplayedData.CreateRec(@otherdata,RunTimeUnit^.TypeName2PTD('TOtherData'),nil,UnitsFormat));//show otherdata variable in inspector
+  GDBobjinsp1.setDisplayedData(TDisplayedData.CreateRec(@otherdata,RunTimeUnit^.TypeName2PTD('TOtherData'),nil,UnitsFormat));//show otherdata variable in inspector
 end;
 
 procedure TForm1.AddOtherdata(Sender: TObject);

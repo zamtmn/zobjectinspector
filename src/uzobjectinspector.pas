@@ -33,10 +33,6 @@ uses
   gzctnrVectorTypes,uzctnrvectorstrings,
   uzObjectInspectorManager;
 
-const
-  spliterhalfwidth=4;
-  subtab=1;
-
 type
   TCBReadOnlyMode=(CBReadOnly,CBEditable,CBDoNotTouch);
   PContent=Pointer;
@@ -52,7 +48,8 @@ type
     Ctx:PContext;
     UnitsFormat:TzeUnitsFormat;
     constructor CreateRec(const APData:PContent;const APDataType:PUserTypeDescriptor;const ACtx:PContext;
-      const AUnitsFormat:TzeUnitsFormat);
+      const AUnitsFormat:TzeUnitsFormat);overload;
+    constructor CreateRec(const APData:PContent;const APDataType:PUserTypeDescriptor;const ACtx:PContext);overload;
     procedure Clear;
   end;
 
@@ -81,52 +78,30 @@ type
     fCurrPD:PPropertyDeskriptor;
     fInPlaceEditor:TPropEditor;
     fWidthCorrector:TCorrector;
+    fPropertyColumnWidth:integer;
+    fStoredData:TDisplayedData;
+    fDisplayedData:TDisplayedData;
 
     function getRowHeight:integer;
-  public
-    StoredData:TDisplayedData;
-    CurrData:TDisplayedData;
-
-    PropertyColumnWidth:integer;
-
-    onGetOtherValues:TOnGetOtherValues;
-    onUpdateObjectInInsp:TOnUpdateObjectInInsp;
-    onNotify:TOnNotify;
-    onAfterFreeEditor:TNotifyEvent;
-
-    property InPlaceEditor:TPropEditor read fInPlaceEditor;
-    property CurrPD:PPropertyDeskriptor read fCurrPD;
-    property OnContextPopup;
-
-    procedure draw;virtual;
-    procedure mypaint(Sender:TObject);
     procedure drawprop(DefaultDetails:TThemedElementDetails;PPA:PTPropertyDeskriptorArray;arect:trect);
     procedure InternalDrawprop(DefaultDetails:TThemedElementDetails;PPA:PTPropertyDeskriptorArray;
       var y,sub:integer;miny:integer;arect:trect;var LastPropAddFreespace:boolean);
     procedure calctreeh(PPA:PTPropertyDeskriptorArray;var y:integer);
     function gettreeh:integer;virtual;
+    procedure DoOnResize;override;
     procedure _onresize(Sender:TObject);virtual;
     procedure updateeditorBounds;virtual;
     procedure buildproplist(const f:TzeUnitsFormat;exttype:PUserTypeDescriptor;bmode:integer;var addr:pointer);
-    procedure SetCurrentObjDefault;
-    procedure ReturnToDefault;
-    procedure rebuild;
     procedure Notify(Sender:TObject;Command:TMyNotifyCommand);virtual;
     procedure createpda;
-    destructor Destroy;override;
     procedure createscrollbars;virtual;
-    procedure ScrollBy(DeltaX,DeltaY:integer);override;
-    procedure AfterConstruction;override;
 
-    procedure FreeEditor;
-    procedure StoreAndFreeEditor;
     procedure ClearEDContext;
     procedure AsyncFreeEditorAndSelectNext(Data:PtrInt);
     procedure AsyncFreeEditor(Data:PtrInt);
-    function IsMouseOnSpliter(pp:PPropertyDeskriptor;X,Y:integer):boolean;
+    function IsMouseOnSpliter(X,Y:integer):boolean;
 
     procedure createeditor(pp:PPropertyDeskriptor);
-    constructor Create(AOwner:TComponent);override;
 
     function IsHeadersEnabled:boolean;
     function HeadersHeight:integer;
@@ -134,19 +109,63 @@ type
     {LCL}
     procedure MouseMove(Shift:TShiftState;X,Y:integer);override;
     procedure MouseLeave;override;
-
     procedure MouseDown(Button:TMouseButton;Shift:TShiftState;X,Y:integer);override;
     procedure MouseUp(Button:TMouseButton;Shift:TShiftState;X,Y:integer);override;
-    procedure UpdateObjectInInsp;
-    procedure setptr(AData:TDisplayedData);
-    procedure updateinsp;
+    procedure Paint;override;
+
+  public
+
+    onGetOtherValues:TOnGetOtherValues;
+    onUpdateObjectInInsp:TOnUpdateObjectInInsp;
+    onNotify:TOnNotify;
+    onAfterFreeEditor:TNotifyEvent;
+
+    constructor Create(AOwner:TComponent);override;
+    destructor Destroy;override;
+
+    procedure setDisplayedData(AData:TDisplayedData);
+    procedure SetDisplayedDataAsDefault;
+    procedure StoreDisplayedData;
+    procedure ForgetStoredData;
+    procedure ReturnToDefault;
+    function hasStoredData:boolean;
+
+    procedure setPropertyColumnWidth(const APropertyColumnWidth,ACValue,ACBaseValue:Integer);
+    procedure rebuild;
+    procedure FreeEditor;
+    procedure StoreAndFreeEditor;
     procedure myKeyDown(Sender:TObject;var Key:word;Shift:TShiftState);
+    procedure updateinsp;
+    procedure UpdateObjectInInsp;
+
+    {LCL}
+    procedure ScrollBy(DeltaX,DeltaY:integer);override;
+
+    property DisplayedDataPData:pointer read fDisplayedData.PData;
+    property InPlaceEditor:TPropEditor read fInPlaceEditor;
+    property PropertyColumnWidth:integer read fPropertyColumnWidth;
+    property CurrPD:PPropertyDeskriptor read fCurrPD;
+    property OnContextPopup;
   end;
 
 procedure Register;
 procedure SetComboSize(cb:TComboBox;ItemH:integer;ReadOnlyMode:TCBReadOnlyMode);
 
 implementation
+
+const
+  spliterhalfwidth=4;
+  subtab=1;
+
+procedure TGDBobjinsp.setPropertyColumnWidth(const APropertyColumnWidth,ACValue,ACBaseValue:Integer);
+begin
+  if APropertyColumnWidth>0 then
+    fPropertyColumnWidth:=APropertyColumnWidth;
+  if ACValue>0 then
+    fWidthCorrector.Value:=ACValue;
+  if ACBaseValue>0 then
+    fWidthCorrector.BaseValue:=ACBaseValue;
+end;
 
 constructor TCorrector.CreateRec(const AValue,ABaseValue:Integer);
 begin
@@ -184,6 +203,14 @@ begin
   UnitsFormat:=AUnitsFormat;
 end;
 
+constructor TDisplayedData.CreateRec(const APData:PContent;const APDataType:PUserTypeDescriptor;const ACtx:PContext);
+begin
+  PData:=APData;
+  PDataType:=APDataType;
+  Ctx:=ACtx;
+  UnitsFormat:=default(TzeUnitsFormat);
+end;
+
 procedure TDisplayedData.Clear;
 begin
   CreateRec(nil,nil,nil,CreateDefaultUnitsFormat);
@@ -203,10 +230,10 @@ begin
       exit;
     end;
   end;
-  if StoredData.PData<>nil then
+  if fStoredData.PData<>nil then
     if key=VK_ESCAPE then begin
-      setptr(StoredData);
-      StoredData.Clear();
+      setDisplayedData(fStoredData);
+      fStoredData.Clear();
       key:=0;
       exit;
     end;
@@ -266,29 +293,9 @@ begin
     Result:=False;
 end;
 
-procedure TGDBobjinsp.AfterConstruction;
+procedure TGDBobjinsp.SetDisplayedDataAsDefault;
 begin
-  inherited;
-
-  onresize:=_onresize;
-  onpaint:=mypaint;
-  self.DoubleBuffered:=True;
-  self.BorderStyle:=bsnone;
-  self.BorderWidth:=0;
-
-  CurrData.CreateRec(nil,nil,nil,CreateDefaultUnitsFormat);
-  fInPlaceEditor:=nil;
-  createpda;
-  fEDContext.ppropcurrentedit:=nil;
-
-  fMResplit:=False;
-  PropertyColumnWidth:=clientwidth div 2;
-  fWidthCorrector.CreateRec(PropertyColumnWidth,clientwidth);
-end;
-
-procedure TGDBobjinsp.SetCurrentObjDefault;
-begin
-  fDefaultData:=CurrData;
+  fDefaultData:=fDisplayedData;
 end;
 
 procedure TGDBobjinsp.ReturnToDefault;
@@ -296,7 +303,22 @@ begin
   if assigned(fInPlaceEditor) then begin
     self.StoreAndFreeEditor;
   end;
-  setptr(fDefaultData);
+  setDisplayedData(fDefaultData);
+end;
+
+function TGDBobjinsp.hasStoredData:boolean;
+begin
+  result:=fStoredData.PData<>nil;
+end;
+
+procedure TGDBobjinsp.StoreDisplayedData;
+begin
+  fStoredData:=fDisplayedData;
+end;
+
+procedure TGDBobjinsp.ForgetStoredData;
+begin
+  fStoredData:=TDisplayedData.CreateRec(nil,nil,nil,default(TzeUnitsFormat));
 end;
 
 procedure TGDBobjinsp.createpda;
@@ -612,9 +634,9 @@ begin
           r.Left:=arect.Left+{2+}(subtab+GetSizeTreeIcon(True,False).cx)*sub;
         r.Top:=y;
         if NeedShowSeparator then
-          r.Right:=PropertyColumnWidth-spliterhalfwidth
+          r.Right:=fPropertyColumnWidth-spliterhalfwidth
         else
-          r.Right:=PropertyColumnWidth;
+          r.Right:=fPropertyColumnWidth;
         r.Bottom:=y+rowh+1;
         if miny<=r.Bottom then
           Visible:=True
@@ -701,12 +723,7 @@ begin
   calctreeh(@fPDA,Result);
 end;
 
-procedure TGDBobjinsp.mypaint;
-begin
-  draw;
-end;
-
-procedure TGDBobjinsp.draw;
+procedure TGDBobjinsp.Paint;
 var
   arect,hrect:trect;
   tc:tcolor;
@@ -762,7 +779,7 @@ begin
 
   if IsHeadersEnabled then begin
     hrect.Left:=hrect.Left+2;
-    hrect.Right:=PropertyColumnWidth{$IFDEF WINDOWS}+1{$ENDIF};
+    hrect.Right:=fPropertyColumnWidth{$IFDEF WINDOWS}+1{$ENDIF};
     vDefaultDetails:=ThemeServices.GetElementDetails(thHeaderItemNormal);
     ThemeServices.DrawElement(Canvas.Handle,vDefaultDetails,hrect,nil);
     ThemeServices.DrawText(Canvas,vDefaultDetails,OIManager.PropertyRowName,hrect,DT_END_ELLIPSIS or DT_CENTER or DT_VCENTER or DT_NOPREFIX,0);
@@ -780,8 +797,8 @@ begin
   end;
 
   if NeedShowSeparator then begin
-    hrect.Left:=PropertyColumnWidth-2;
-    hrect.right:=PropertyColumnWidth+{$IFNDEF WINDOWS}2{$ENDIF}{$IFDEF WINDOWS}1{$ENDIF};
+    hrect.Left:=fPropertyColumnWidth-2;
+    hrect.right:=fPropertyColumnWidth+{$IFNDEF WINDOWS}2{$ENDIF}{$IFDEF WINDOWS}1{$ENDIF};
     hrect.Top:=hrect.Bottom;
     hrect.Bottom:=fcontentheigth+HeadersHeight;
     if hrect.Bottom>ARect.Bottom then
@@ -927,7 +944,7 @@ begin
   if Sender=fInPlaceEditor then begin
     saveppropcurrentedit:=fEDContext.ppropcurrentedit;
     if assigned(onNotify) then
-      onNotify(CurrData.Ctx);
+      onNotify(fDisplayedData.Ctx);
     pld:=fInPlaceEditor.PInstance;
 
     if (Command=TMNC_RunFastEditor) then
@@ -961,14 +978,14 @@ var
   OnFieldModifyProc:TOnFieldModifyProc;
   PParentType:PUserTypeDescriptor;
 begin
-  PParentType:=CurrData.PDataType;
+  PParentType:=fDisplayedData.PDataType;
   OnFieldModifyProc:=nil;
   while (@OnFieldModifyProc=nil)and(PParentType<>nil) do begin
     OnFieldModifyProc:=OIManager.OnFieldModifyProc(PParentType);
     PParentType:=PParentType^.GetParentTypedef;
   end;
   if assigned(onUpdateObjectInInsp) then
-    onUpdateObjectInInsp(fEDContext,CurrData.PDataType,CurrData.Ctx,CurrData.PData,OnFieldModifyProc);
+    onUpdateObjectInInsp(fEDContext,fDisplayedData.PDataType,fDisplayedData.Ctx,fDisplayedData.PData,OnFieldModifyProc);
   self.updateinsp;
 end;
 
@@ -1024,7 +1041,7 @@ begin
   UpdateScrollbars;
 end;
 
-function TGDBobjinsp.IsMouseOnSpliter(pp:PPropertyDeskriptor;X,Y:integer):boolean;
+function TGDBobjinsp.IsMouseOnSpliter(X,Y:integer):boolean;
 var
   my:integer;
   canresplit:boolean;
@@ -1040,7 +1057,7 @@ begin
     canresplit:=True;
 
   if canresplit then
-    if (abs(x-PropertyColumnWidth)<spliterhalfwidth) then
+    if (abs(x-fPropertyColumnWidth)<spliterhalfwidth) then
       Result:=True;
 end;
 
@@ -1066,18 +1083,18 @@ var
   rowh:integer;
 begin
   if fMResplit then begin
-    if PropertyColumnWidth<subtab then begin
-      if x>PropertyColumnWidth then begin
-        PropertyColumnWidth:=x;
+    if fPropertyColumnWidth<subtab then begin
+      if x>fPropertyColumnWidth then begin
+        fPropertyColumnWidth:=x;
       end;
-    end else if PropertyColumnWidth>clientwidth-subtab then begin
-      if x<PropertyColumnWidth then begin
-        PropertyColumnWidth:=x;
+    end else if fPropertyColumnWidth>clientwidth-subtab then begin
+      if x<fPropertyColumnWidth then begin
+        fPropertyColumnWidth:=x;
       end;
     end else begin
-      PropertyColumnWidth:=x;
+      fPropertyColumnWidth:=x;
     end;
-    fWidthCorrector.CreateRec(PropertyColumnWidth,clientwidth);
+    fWidthCorrector.CreateRec(fPropertyColumnWidth,clientwidth);
     repaint;
     updateeditorBounds;
   end else begin
@@ -1092,7 +1109,7 @@ begin
         clearRTstate(fOnMousePP.FastEditors);
       fOnMousePP:=pp;
     end;
-    if IsMouseOnSpliter(pp,X,Y) then
+    if IsMouseOnSpliter(X,Y) then
       self.Cursor:=crHSplit
     else
       self.Cursor:=crDefault;
@@ -1149,12 +1166,12 @@ begin
 
     if pp^.PTypeManager<>nil then begin
       if fInPlaceEditor<>nil then begin
-        tp:=CurrData.PData;
-        buildproplist(CurrData.UnitsFormat,CurrData.PDataType,property_correct,tp);
+        tp:=fDisplayedData.PData;
+        buildproplist(fDisplayedData.UnitsFormat,fDisplayedData.PDataType,property_correct,tp);
         fEDContext.ppropcurrentedit:=pp;
       end;
       fInPlaceEditor:=pp^.PTypeManager^.CreateEditor(@self,pp.rect,pp^.valueAddres,nil,False,'этого не должно тут быть',
-        rowh,CurrData.UnitsFormat).Editor;
+        rowh,fDisplayedData.UnitsFormat).Editor;
       if fInPlaceEditor<>nil then begin
         //fInPlaceEditor^.show;
       end;
@@ -1233,6 +1250,18 @@ end;
 constructor TGDBobjinsp.Create(AOwner:TComponent);
 begin
   inherited;
+  DoubleBuffered:=True;
+  BorderStyle:=bsnone;
+  BorderWidth:=0;
+
+  fDisplayedData.CreateRec(nil,nil,nil,CreateDefaultUnitsFormat);
+  fInPlaceEditor:=nil;
+  createpda;
+  fEDContext.ppropcurrentedit:=nil;
+
+  fMResplit:=False;
+  fPropertyColumnWidth:=clientwidth div 2;
+  fWidthCorrector.CreateRec(fPropertyColumnWidth,clientwidth);
 end;
 
 procedure TGDBobjinsp.createeditor(pp:PPropertyDeskriptor);
@@ -1255,14 +1284,14 @@ begin
       exit;
     if pp^.PTypeManager<>nil then begin
       if fInPlaceEditor<>nil then begin
-        tp:=CurrData.PData;
-        buildproplist(CurrData.UnitsFormat,CurrData.PDataType,property_correct,tp);
+        tp:=fDisplayedData.PData;
+        buildproplist(fDisplayedData.UnitsFormat,fDisplayedData.PDataType,property_correct,tp);
         StoreAndFreeEditor;
       end;
       vsa.init(50);
 
       if assigned(onGetOtherValues) then
-        onGetOtherValues(vsa,pp^.valkey,CurrData);
+        onGetOtherValues(vsa,pp^.valkey,fDisplayedData);
 
       if assigned(pp^.valueAddres) then begin
         if fldaDifferent in pp^.Attr then
@@ -1272,10 +1301,10 @@ begin
         tr:=pp^.rect;
         if assigned(pp^.Decorators.OnCreateEditor) then
           TED:=
-            pp^.Decorators.OnCreateEditor(self,tr,pp^.valueAddres,@vsa,False,pp^.PTypeManager,CurrData.UnitsFormat)
+            pp^.Decorators.OnCreateEditor(self,tr,pp^.valueAddres,@vsa,False,pp^.PTypeManager,fDisplayedData.UnitsFormat)
         else
           TED:=pp^.PTypeManager^.CreateEditor(self,tr,pp^.valueAddres,@vsa,{false}True,initialvalue,
-            getRowHeight,CurrData.UnitsFormat);
+            getRowHeight,fDisplayedData.UnitsFormat);
         case ted.Mode of
           TEM_Integrate:begin
             TED.Editor.SetEditorBounds(pp,OIManager.INTFObjInspShowOnlyHotFastEditors);
@@ -1335,7 +1364,7 @@ begin
   my:=HeadersHeight;
   pp:=mousetoprop(getRowHeight,@fPDA,x,y,my);
 
-  if (button=mbLeft)  and (IsMouseOnSpliter(pp,X,Y)) then begin
+  if (button=mbLeft)and(IsMouseOnSpliter(X,Y)) then begin
     fMResplit:=True;
     exit;
   end;
@@ -1371,7 +1400,7 @@ end;
 
 procedure TGDBobjinsp.updateinsp;
 begin
-  setptr(CurrData);
+  setDisplayedData(fDisplayedData);
   updateeditorBounds;
 end;
 
@@ -1384,39 +1413,39 @@ begin
   if fInPlaceEditor<>nil then begin
     //--MultiSelectEditor not work with this self.freeeditor;
   end;
-  tp:=CurrData.PData;
-  buildproplist(CurrData.UnitsFormat,CurrData.PDataType,property_build,tp);
+  tp:=fDisplayedData.PData;
+  buildproplist(fDisplayedData.UnitsFormat,fDisplayedData.PDataType,property_build,tp);
   fcontentheigth:=gettreeh;
-  if CurrData.PDataType^.OIP.ci=self.Height then begin
-    VertScrollBar.Position:=CurrData.PDataType^.OIP.barpos;
+  if fDisplayedData.PDataType^.OIP.ci=self.Height then begin
+    VertScrollBar.Position:=fDisplayedData.PDataType^.OIP.barpos;
   end else begin
     VertScrollBar.Position:=0;
   end;
 
   createscrollbars;
-  draw;
+  Paint;
 end;
 
-procedure TGDBobjinsp.setptr(AData:TDisplayedData);
+procedure TGDBobjinsp.setDisplayedData(AData:TDisplayedData);
 begin
-  if (CurrData.PData<>AData.PData)or(CurrData.PDataType<>AData.PDataType) then begin
+  if (fDisplayedData.PData<>AData.PData)or(fDisplayedData.PDataType<>AData.PDataType) then begin
     fOnMousePP:=nil;
     fCurrPD:=nil;
     if fInPlaceEditor<>nil then begin
       self.freeeditor;
     end;
-    if assigned(CurrData.PDataType) then begin
-      CurrData.PDataType^.OIP.ci:=self.Height;
-      CurrData.PDataType^.OIP.barpos:=VertScrollBar.Position;
+    if assigned(fDisplayedData.PDataType) then begin
+      fDisplayedData.PDataType^.OIP.ci:=self.Height;
+      fDisplayedData.PDataType^.OIP.barpos:=VertScrollBar.Position;
     end;
     fPDA.cleareraseobj;
-    CurrData:=AData;
+    fDisplayedData:=AData;
     fOLDPP:=nil;
     buildproplist(AData.UnitsFormat,AData.PDataType,property_build,AData.PData);
     fcontentheigth:=gettreeh;
     createscrollbars;
-    if CurrData.PDataType^.OIP.ci=self.Height then begin
-      VertScrollBar.Position:=CurrData.PDataType^.OIP.barpos;
+    if fDisplayedData.PDataType^.OIP.ci=self.Height then begin
+      VertScrollBar.Position:=fDisplayedData.PDataType^.OIP.barpos;
     end else begin
       VertScrollBar.Position:=0;
     end;
@@ -1435,17 +1464,23 @@ begin
     fInPlaceEditor.SetEditorBounds(fEDContext.ppropcurrentedit,OIManager.INTFObjInspShowOnlyHotFastEditors);
 end;
 
+procedure TGDBobjinsp.DoOnResize;
+begin
+  inherited;
+  _onresize(nil);
+end;
+
 procedure TGDBobjinsp._onresize(Sender:TObject);
  {$IFDEF LCLGTK2}
   var Widget: PGtkWidget;
  {$ENDIF}
 begin
-  PropertyColumnWidth:=fWidthCorrector.CorrectValue(clientwidth);
+  fPropertyColumnWidth:=fWidthCorrector.CorrectValue(clientwidth);
 
-  if PropertyColumnWidth>clientwidth-subtab then
-    PropertyColumnWidth:=clientwidth-subtab;
-  if PropertyColumnWidth<subtab then
-    PropertyColumnWidth:=clientwidth div 2;
+  if fPropertyColumnWidth>clientwidth-subtab then
+    fPropertyColumnWidth:=clientwidth-subtab;
+  if fPropertyColumnWidth<subtab then
+    fPropertyColumnWidth:=clientwidth div 2;
   {$IFDEF LCLGTK2}
   //Widget:=PGtkWidget(PtrUInt(Handle));
   //gtk_widget_add_events (Widget,GDK_POINTER_MOTION_HINT_MASK);

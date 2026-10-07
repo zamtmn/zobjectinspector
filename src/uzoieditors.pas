@@ -46,7 +46,7 @@ class function TBaseTypesEditors.BaseCreateEditor;
       cbedit:TComboBox;
    begin
         result.editor:=nil;
-        result.mode:=TEM_Nothing;
+        result.mode:=EM_Nothing;
         if (psa=nil)or(psa^.count=0) then
                             begin
                                   propeditor:=TPropEditor.Create(theowner,PInstance,ptdesc^,FreeOnLostFocus,f);
@@ -62,7 +62,7 @@ class function TBaseTypesEditors.BaseCreateEditor;
                                   edit.OnExit:=propeditor.ExitEdit;
 
                                  result.editor:=propeditor;
-                                 result.mode:=TEM_Integrate;
+                                 result.mode:=EM_Inplace;
                             end
                         else
                             begin
@@ -80,7 +80,7 @@ class function TBaseTypesEditors.BaseCreateEditor;
                                  cbedit.OnExit:=propeditor.ExitEdit;
 
                                  result.editor:=propeditor;
-                                 result.mode:=TEM_Integrate;
+                                 result.mode:=EM_Inplace;
                                        ps:=psa^.beginiterate(ir);
                                         if (ps<>nil) then
                                         repeat
@@ -120,7 +120,7 @@ begin
                                     cbedit.ItemIndex:=1;
 
      result.editor:=propeditor;
-     result.mode:=TEM_Integrate;
+     result.mode:=EM_Inplace;
 end;
 class function TBaseTypesEditors.TEnumDataCreateEditor;
 var
@@ -149,7 +149,7 @@ begin
      cbedit.ItemIndex:=PTEnumData(Pinstance)^.Selected;
 
      result.editor:=propeditor;
-     result.mode:=TEM_Integrate;
+     result.mode:=EM_Inplace;
 end;
 class function TBaseTypesEditors.EnumDescriptorCreateEditor;
 var
@@ -179,6 +179,6 @@ begin
      cbedit.ItemIndex:=number;
 
      result.editor:=propeditor;
-     result.mode:=TEM_Integrate;
+     result.mode:=EM_Inplace;
 end;
 end.

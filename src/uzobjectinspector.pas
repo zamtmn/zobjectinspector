@@ -426,6 +426,29 @@ begin
   Result:=ThemeServices.GetDetailSizeForPPI(Details,Screen.PixelsPerInch);
 end;
 
+procedure clearRTd(rtv:TFastEditorsRunTimeVector);
+var
+  i:integer;
+begin
+  if (assigned(rtv))and(rtv.size>0)then
+    for i:=0 to rtv.size-1 do
+      begin
+        rtv.Mutable[i]^.FastEditorDrawed:=false;
+      end;
+end;
+
+procedure clearRTstate(rtv:TFastEditorsRunTimeVector);
+var
+  i:integer;
+begin
+  if (assigned(rtv))and(rtv.size>0)then
+    for i:=0 to rtv.size-1 do
+      begin
+        rtv.Mutable[i]^.FastEditorState:=TFES_Default;
+      end;
+end;
+
+
 procedure drawheader(Canvas:tcanvas;ppd:PPropertyDeskriptor;r:trect;Name:string;onm:boolean;
   TextDetails:TThemedElementDetails);
 
@@ -1306,7 +1329,7 @@ begin
           TED:=pp^.PTypeManager^.CreateEditor(self,tr,pp^.valueAddres,@vsa,{false}True,initialvalue,
             getRowHeight,fDisplayedData.UnitsFormat);
         case ted.Mode of
-          TEM_Integrate:begin
+          EM_Inplace:begin
             TED.Editor.SetEditorBounds(pp,OIManager.INTFObjInspShowOnlyHotFastEditors);
             editorcontrol:=TED.Editor.geteditor;
             if (editorcontrol is TComboBox) then begin
